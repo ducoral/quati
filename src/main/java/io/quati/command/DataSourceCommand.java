@@ -1,11 +1,9 @@
-package io.quati.cmd;
+package io.quati.command;
 
-import io.quati.cli.Command;
-import io.quati.cli.Quati;
+import io.quati.core.Command;
+import io.quati.core.Quati;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class DataSourceCommand implements Command {
 
@@ -26,12 +24,12 @@ public class DataSourceCommand implements Command {
         builder
                 .action("create", "create datasource")
                 .argument(true, "NAME", "name of the datasource that may be referenced later")
-                .parameter(true, "-d", "--driver", "DRIVER", "name of the installed driver")
-                .parameter(true, "-h", "--host", "HOST", "database host")
-                .parameter(false, "-p", "--port", "PORT", "database port")
-                .parameter(true, "-db", "--database", "DATABASE", "database name")
-                .parameter(true, "-u", "--user-name", "USER", "database user name")
-                .parameter(true, "-s", "--secret", "PASSWORD", "database user password");
+                .option(true, "-d", "--driver", "DRIVER", "name of the installed driver")
+                .option(true, "-h", "--host", "HOST", "database host")
+                .option(false, "-p", "--port", "PORT", "database port")
+                .option(true, "-db", "--database", "DATABASE", "database name")
+                .option(true, "-u", "--user-name", "USER", "database user name")
+                .option(true, "-s", "--secret", "PASSWORD", "database user password");
         builder
                 .action("test", "test datasource connection")
                 .argument(true, "NAME", "name of the datasource to be tested");
@@ -44,12 +42,17 @@ public class DataSourceCommand implements Command {
     }
 
     @Override
-    public void completion(Quati quati, String argument, String completionWord, List<String> suggestionList) {
+    public void completionArgument(Quati quati, Params params, List<String> completion) {
 
     }
 
     @Override
-    public void execute(Quati quati, String argument, Map<String, String> parameters, Set<String> flags) {
+    public void completionOption(Quati quati, String option, Params params, List<String> completion) {
+
+    }
+
+    @Override
+    public void execute(Quati quati, Params params) {
 
     }
 }

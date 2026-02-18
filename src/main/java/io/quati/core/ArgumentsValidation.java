@@ -1,4 +1,4 @@
-package io.quati.cli;
+package io.quati.core;
 
 import java.util.Arrays;
 
@@ -11,7 +11,7 @@ public class ArgumentsValidation {
     }
 
     public void execute(String[] args) {
-        quati.output("validou: %s%n", Arrays.toString(args));
+//        quati.output("validou: %s%n", Arrays.toString(args));
 //        System.exit(0);
     }
 }

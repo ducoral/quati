@@ -1,4 +1,4 @@
-package io.quati.cli;
+package io.quati.core;
 
 import java.util.regex.Pattern;
 
@@ -6,7 +6,7 @@ public class ColorFilter {
 
     static final String RESET = "\u001B[0m";
 
-    enum Filter {
+    enum Color {
         BLACK("bk", "\u001B[30m"),
         RED("r", "\u001B[31m"),
         GREEN("g", "\u001B[32m"),
@@ -31,14 +31,14 @@ public class ColorFilter {
             return code + text + RESET;
         }
 
-        Filter(String prefix, String code) {
+        Color(String prefix, String code) {
             pattern = Pattern.compile(prefix + "\\{([^}]+)}");
             this.code = code;
         }
     }
 
     public static String apply(String message) {
-        for (var filter : Filter.values()) {
+        for (var filter : Color.values()) {
             var match = filter.pattern.matcher(message);
             while (match.find()) {
                 message = message.replace(match.group(), filter.apply(match.group(1)));

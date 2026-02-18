@@ -1,11 +1,9 @@
-package io.quati.cmd;
+package io.quati.command;
 
-import io.quati.cli.Command;
-import io.quati.cli.Quati;
+import io.quati.core.Command;
+import io.quati.core.Quati;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class DriverCommand implements Command {
 
@@ -33,12 +31,17 @@ public class DriverCommand implements Command {
     }
 
     @Override
-    public void completion(Quati quati, String argument, String completionWord, List<String> suggestionList) {
+    public void completionArgument(Quati quati, Params params, List<String> completion) {
 
     }
 
     @Override
-    public void execute(Quati quati, String argument, Map<String, String> parameters, Set<String> flags) {
+    public void completionOption(Quati quati, String option, Params params, List<String> completion) {
+
+    }
+
+    @Override
+    public void execute(Quati quati, Params params) {
 
     }
 }
