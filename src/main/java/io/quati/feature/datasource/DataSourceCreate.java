@@ -5,6 +5,8 @@ import io.quati.api.Context;
 import io.quati.api.Option;
 import io.quati.api.Position;
 
+import java.util.List;
+
 import static io.quati.api.Arity.ONE;
 import static io.quati.api.Arity.ZERO_OR_ONE;
 
@@ -39,6 +41,17 @@ public class DataSourceCreate implements Command {
     @Override
     public String desc() {
         return "create datasource";
+    }
+
+    @Override
+    public void tabComp(int pos, String value, List<String> compList) {
+
+    }
+
+    @Override
+    public void tabComp(String opt, String value, List<String> compList) {
+        if (opt.equals("-d") || opt.equals("--driver"))
+            compList.addAll(List.of("postgresql", "mysql", "oracle", "mssqlserver", "db2"));
     }
 
     @Override

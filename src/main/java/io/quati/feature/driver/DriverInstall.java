@@ -22,6 +22,16 @@ public class DriverInstall implements Command {
     }
 
     @Override
+    public void tabComp(int pos, String value, List<String> compList) {
+
+    }
+
+    @Override
+    public void tabComp(String opt, String value, List<String> compList) {
+
+    }
+
+    @Override
     public void exec(Context ctx) {
 
     }

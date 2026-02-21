@@ -5,6 +5,8 @@ import io.quati.api.Command;
 import io.quati.api.Context;
 import io.quati.api.Position;
 
+import java.util.List;
+
 import static io.quati.api.Arity.ONE;
 
 public class DataSourceInfo implements Command {
@@ -20,6 +22,16 @@ public class DataSourceInfo implements Command {
     @Override
     public String desc() {
         return "displays the datasource configuration";
+    }
+
+    @Override
+    public void tabComp(int pos, String value, List<String> compList) {
+
+    }
+
+    @Override
+    public void tabComp(String opt, String value, List<String> compList) {
+
     }
 
     @Override

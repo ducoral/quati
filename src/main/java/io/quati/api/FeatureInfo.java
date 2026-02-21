@@ -1,8 +1,11 @@
 package io.quati.api;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -122,19 +125,22 @@ public interface FeatureInfo {
 
         Map<String, FlagInfo> flags();
 
-        Command cmd();
+        Command obj();
 
         default boolean hasPos(int pos) {
             return pos().isPresent()
                     && pos().get().arity().hasPos(pos);
         }
 
-        default boolean hasOptOrFlag(String name) {
-            return opts().containsKey(name)
-                    || flags().containsKey(name);
+        default boolean hasOpt(String name) {
+            return opts().containsKey(name);
         }
 
-        default boolean hasOptOrFlagStartsWith(String partial) {
+        default boolean hasFlag(String name) {
+            return flags().containsKey(name);
+        }
+
+        default boolean hasOptFlagStartsWith(String partial) {
             var hasOpt = opts()
                     .keySet()
                     .stream()
@@ -148,10 +154,105 @@ public interface FeatureInfo {
                     .anyMatch(opt -> opt.startsWith(partial));
         }
 
-        default Set<String> optAndFlagNames() {
-             var names = new HashSet<>(opts().keySet());
-             names.addAll(flags().keySet());
-             return names;
+        default Set<String> optFlagNames() {
+            var names = new HashSet<>(opts().keySet());
+            names.addAll(flags().keySet());
+            return names;
+        }
+
+        @SuppressWarnings("unchecked")
+        default void addPosValue(String position) {
+            if (pos().isEmpty())
+                return;
+            try {
+                var info = pos().get();
+                var field = info.field();
+                if (field.getType() == String.class)
+                    field.set(obj(), position);
+                else if (isListOfString(field)) {
+                    List<String> list = (List<String>) field.get(obj());
+                    if (list == null)
+                        list = new ArrayList<>();
+                    list.add(position);
+                    field.set(obj(), list);
+                } else
+                    throw new RuntimeException("Invalid Java field type for Position argument");
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        default void setFlag(String name) {
+            if (!hasFlag(name))
+                return;
+            try {
+                var info = flags().get(name);
+                var field = info.field();
+                if (field.getType() != Boolean.class)
+                    throw new RuntimeException("Invalid Java field type for Flag '%s'".formatted(name));
+                field.set(obj(), Boolean.TRUE);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        default void putOpt(String name, String value) {
+            if (!hasOpt(name))
+                return;
+            try {
+                var info = opts().get(name);
+                var field = info.field();
+                if (field.getType() == String.class)
+                    field.set(obj(), value);
+                else if (isListOfString(field)) {
+                    List<String> list = (List<String>) field.get(obj());
+                    if (list == null)
+                        list = new ArrayList<>();
+                    list.add(value);
+                    field.set(obj(), list);
+                } else
+                    throw new RuntimeException("Invalid Java field type for Option '%s'".formatted(name));
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        default boolean hasRoomFor(String opt) {
+            if (!hasOpt(opt))
+                return false;
+            try {
+                var info = opts().get(opt);
+                var arity = info.arity();
+                var value = info.field().get(obj());
+                return switch (value) {
+                    case null -> arity.hasPos(1);
+                    case String str -> !str.isEmpty() && arity.hasPos(1);
+                    case List<?> list -> arity.hasPos(list.size() + 1);
+                    default -> false;
+                };
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        default boolean isArityOk(String opt) {
+            if (!hasOpt(opt))
+                return false;
+            try {
+                var info = opts().get(opt);
+                var arity = info.arity();
+                var value = info.field().get(obj());
+                return switch (value) {
+                    case null -> arity.min() == 0;
+                    case String str -> !str.isEmpty() || arity.min() == 0;
+                    case List<?> list -> arity.min() <= (list.size() + 1)
+                            && (list.size() + 1) <= arity.max();
+                    default -> true;
+                };
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         static CmdInfo of(Class<? extends Command> clazz) {
@@ -200,7 +301,7 @@ public interface FeatureInfo {
                     }
 
                     @Override
-                    public Command cmd() {
+                    public Command obj() {
                         return command;
                     }
                 };
@@ -249,6 +350,18 @@ public interface FeatureInfo {
                 return cmds;
             }
         };
+    }
+
+    private static boolean isListOfString(Field field) {
+        if (field != null && field.getGenericType() instanceof ParameterizedType parameterized) {
+            var raw = parameterized.getRawType();
+            if (raw instanceof Class<?> clazz && List.class.isAssignableFrom(clazz)) {
+                var args = parameterized.getActualTypeArguments();
+                if (args.length > 0 && args[0] instanceof Class<?> type)
+                    return type == String.class;
+            }
+        }
+        return false;
     }
 
     private static Set<String> splitNames(String names) {

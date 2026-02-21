@@ -45,7 +45,7 @@ public enum AnsiColor {
                     builder.append(ESCAPE.formatted(RESET));
                     continue;
                 }
-                if ("krgybpcwx".indexOf(Character.toLowerCase(scan.current())) > -1) {
+                if ("krgybpcwz".indexOf(Character.toLowerCase(scan.current())) > -1) {
                     var token = scan.currentAndNext();
                     if (scan.is(':')) {
                         scan.next();
@@ -72,7 +72,7 @@ public enum AnsiColor {
 
     private static int colorCode(char token, boolean bright) {
         var tokenLower = Character.toLowerCase(token);
-        if (tokenLower == 'x')
+        if (tokenLower == 'z')
             return Character.isLowerCase(token)
                     ? RESET_FG
                     : RESET_BG;

@@ -4,6 +4,8 @@ import io.quati.api.Command;
 import io.quati.api.Context;
 import io.quati.api.Position;
 
+import java.util.List;
+
 import static io.quati.api.Arity.ONE;
 
 public class DataSourceRemove implements Command {
@@ -19,6 +21,16 @@ public class DataSourceRemove implements Command {
     @Override
     public String desc() {
         return "remove the datasource";
+    }
+
+    @Override
+    public void tabComp(int pos, String value, List<String> compList) {
+
+    }
+
+    @Override
+    public void tabComp(String opt, String value, List<String> compList) {
+
     }
 
     @Override
