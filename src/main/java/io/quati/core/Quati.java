@@ -1,7 +1,8 @@
 package io.quati.core;
 
-import java.util.ArrayList;
-import java.util.Comparator;
+import io.quati.api.Feature;
+import io.quati.api.FeatureInfo;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,68 +10,39 @@ import java.util.Set;
 
 public class Quati {
 
-    private final Map<String, Command.Info> infoMap = new HashMap<>();
+    private final Map<String, FeatureInfo> features = new HashMap<>();
 
-    private final Map<Class<?>, Command> commandMap = new HashMap<>();
-
-    public Quati(List<Class<? extends Command>> commandsList) {
+    public Quati(List<Class<? extends Feature>> featuresList) {
         try {
-            for (var command : commandsList) {
-                var instance = command.getDeclaredConstructor().newInstance();
-                infoMap.put(instance.name(), instance.info());
-                commandMap.put(instance.getClass(), instance);
+            for (var feature : featuresList) {
+                var instance = feature.getDeclaredConstructor().newInstance();
+                features.put(instance.name(), instance.info());
             }
         } catch (Exception e) {
-            error("rB{%s%n}", e.getMessage());
+            System.out.println(AnsiColor.RED.fg(e.getMessage()));
         }
     }
 
     public void execute(String[] args) {
-        new TabCompletion(this).execute(args);
-        new ArgumentsValidation(this).execute(args);
-        new CommandExecution(this).execute(args);
+        new Completion(this).complete(args);
     }
 
-    public List<String> commandNames() {
-        return new ArrayList<>(infoMap.keySet());
+    public Set<String> featureNames() {
+        return features.keySet();
     }
 
-    public boolean contains(String commandName) {
-        return infoMap.containsKey(commandName);
+    public boolean hasFeature(String feature) {
+        return features.containsKey(feature);
     }
 
-    public boolean containsStartWith(String commandNamePart) {
-        return infoMap
+    public boolean hasFeatureStartsWith(String partial) {
+        return features
                 .keySet()
                 .stream()
-                .anyMatch(command -> command.startsWith(commandNamePart));
+                .anyMatch(feature -> feature.startsWith(partial));
     }
 
-    public Command command(String commandName) {
-        return contains(commandName)
-                ? infoMap.get(commandName).instance()
-                : null;
-    }
-
-    public boolean contains(Class<?> commandType) {
-        return commandMap.containsKey(commandType);
-    }
-
-    public Command.Info info(String command) {
-        return infoMap.get(command);
-    }
-
-    public <T extends Command> T command(Class<T> commandType) {
-        return contains(commandType)
-                ? commandType.cast(commandMap.get(commandType))
-                : null;
-    }
-
-    public void output(String format, Object... args) {
-        System.out.printf(ColorFilter.apply(format), args);
-    }
-
-    public void error(String format, Object... args) {
-        System.err.printf(ColorFilter.apply(format), args);
+    public FeatureInfo feature(String name) {
+        return features.get(name);
     }
 }

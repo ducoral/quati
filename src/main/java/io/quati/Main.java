@@ -1,20 +1,23 @@
 package io.quati;
 
-import io.quati.core.Command;
+import io.quati.api.Feature;
 import io.quati.core.Quati;
-import io.quati.command.DataSourceCommand;
-import io.quati.command.DriverCommand;
+import io.quati.feature.datasource.DataSourceFeature;
+import io.quati.feature.driver.DriverFeature;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 public class Main {
 
-    static final List<Class<? extends Command>> COMMANDS = List.of(
-            DriverCommand.class,
-            DataSourceCommand.class
+    static final List<Class<? extends Feature>> FEATURES = List.of(
+            DriverFeature.class,
+            DataSourceFeature.class
     );
 
     public static void main(String[] args) {
-        new Quati(COMMANDS).execute(args);
+
+        new Quati(FEATURES)
+                .execute(args);
     }
 }
