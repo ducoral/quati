@@ -22,8 +22,8 @@ public interface Arity {
         return max() != 1000;
     }
 
-    default boolean hasPos(int pos) {
-        return pos <= max();
+    default boolean hasPosition(int position) {
+        return position <= max();
     }
 
     static Arity of(String arity) {

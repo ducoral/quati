@@ -1,38 +1,28 @@
 package io.quati.feature.driver;
 
+import io.quati.api.Action;
 import io.quati.api.Command;
 import io.quati.api.Context;
-import io.quati.api.Position;
+import io.quati.api.Argument;
 
 import java.util.List;
 
-public class DriverRemove implements Command {
+@Command(name = "remove", desc = "remove JDBC driver")
+public class DriverRemove implements Action {
 
-    @Position(label = "DRIVER", desc = "name of driver to be removed")
+    @Argument(label = "DRIVER", desc = "name of driver to be removed")
     List<String> drivers;
 
     @Override
-    public String name() {
-        return "remove";
+    public void completeArg(int argPos, String value, List<String> completion) {
     }
 
     @Override
-    public String desc() {
-        return "remove JDBC driver";
+    public void completeOpt(String opt, String value, List<String> completion) {
     }
 
     @Override
-    public void tabComp(int pos, String value, List<String> compList) {
-
-    }
-
-    @Override
-    public void tabComp(String opt, String value, List<String> compList) {
-
-    }
-
-    @Override
-    public void exec(Context ctx) {
+    public void execute(Context ctx) {
 
     }
 }

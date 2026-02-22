@@ -1,16 +1,17 @@
 package io.quati.api;
 
-import java.util.List;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface Feature {
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Feature {
 
     String name();
 
     String desc();
 
-    List<Class<? extends Command>> cmds();
-
-    default FeatureInfo info() {
-        return FeatureInfo.of(this);
-    }
+    Class<? extends Action>[] commands();
 }

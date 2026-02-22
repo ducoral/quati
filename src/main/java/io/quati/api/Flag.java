@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Flag {
 
-    String names();
+    String name();
 
     String desc();
 }

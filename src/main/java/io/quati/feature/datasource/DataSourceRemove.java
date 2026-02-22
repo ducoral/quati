@@ -1,40 +1,20 @@
 package io.quati.feature.datasource;
 
+import io.quati.api.Action;
+import io.quati.api.Argument;
 import io.quati.api.Command;
 import io.quati.api.Context;
-import io.quati.api.Position;
-
-import java.util.List;
 
 import static io.quati.api.Arity.ONE;
 
-public class DataSourceRemove implements Command {
+@Command(name = "remove", desc = "remove the datasource")
+public class DataSourceRemove implements Action {
 
-    @Position(label = "NAME", desc = "name of the datasource to be removed", arity = ONE)
+    @Argument(label = "NAME", desc = "name of the datasource to be removed", arity = ONE)
     String datasource;
 
     @Override
-    public String name() {
-        return "remove";
-    }
-
-    @Override
-    public String desc() {
-        return "remove the datasource";
-    }
-
-    @Override
-    public void tabComp(int pos, String value, List<String> compList) {
-
-    }
-
-    @Override
-    public void tabComp(String opt, String value, List<String> compList) {
-
-    }
-
-    @Override
-    public void exec(Context ctx) {
+    public void execute(Context ctx) {
 
     }
 }
