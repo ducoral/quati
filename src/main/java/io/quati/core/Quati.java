@@ -38,4 +38,5 @@ public class Quati {
     public FeatureInfo info(String feature) {
         return featureMap.get(feature);
     }
+
 }

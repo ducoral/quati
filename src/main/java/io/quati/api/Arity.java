@@ -46,6 +46,11 @@ public interface Arity {
             public int max() {
                 return max;
             }
+
+            @Override
+            public String toString() {
+                return "[%s]".formatted(arity);
+            }
         };
     }
 }

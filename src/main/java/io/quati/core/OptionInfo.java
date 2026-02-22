@@ -9,19 +9,24 @@ import java.util.Map;
 import java.util.Set;
 
 public record OptionInfo(
-        Set<String> names,
+        String option,
+        Set<String> longOptions,
         String label,
         String desc,
         Arity arity,
-        Field field) {
+        Field field) implements OptionsSupport {
 
     public static OptionInfo of(Field field) {
         var opt = field.getAnnotation(Option.class);
-        return new OptionInfo(Strs.splitNames(opt.name()), opt.label(), opt.desc(), Arity.of(opt.arity()), field);
+        var names = Strs.splitNames(opt.name());
+        var longOptions = Set.of(Strs.tail(names));
+        var arity = Arity.of(opt.arity());
+        return new OptionInfo(names[0], longOptions, opt.label(), opt.desc(), arity, field);
     }
 
     public void put(Map<String, OptionInfo> map) {
-        for (var name : names)
+        map.put(option(), this);
+        for (var name : longOptions())
             map.put(name, this);
     }
 }

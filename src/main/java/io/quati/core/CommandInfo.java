@@ -61,6 +61,10 @@ public record CommandInfo(
         return opts.containsKey(name);
     }
 
+    public String optionId(String name) {
+        return opts.get(name).option();
+    }
+
     public void addArgument(String argument) {
         args.ifPresent(argumentInfo ->
                 setValue(action, argumentInfo.field(), argument));
@@ -110,7 +114,7 @@ public record CommandInfo(
         try {
             if (field.getType() == value.getClass())
                 field.set(object, value);
-            else if (isListOfString(field) && value instanceof String string) {
+            else if (isStringList(field) && value instanceof String string) {
                 var list = (List<String>) field.get(object);
                 if (list == null) {
                     list = new ArrayList<>();
@@ -123,7 +127,7 @@ public record CommandInfo(
         }
     }
 
-    private static boolean isListOfString(Field field) {
+    private static boolean isStringList(Field field) {
         if (field != null && field.getGenericType() instanceof ParameterizedType parameterized) {
             var raw = parameterized.getRawType();
             if (raw instanceof Class<?> clazz && List.class.isAssignableFrom(clazz)) {

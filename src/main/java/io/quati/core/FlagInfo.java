@@ -8,17 +8,21 @@ import java.util.Map;
 import java.util.Set;
 
 public record FlagInfo(
-        Set<String> names,
+        String option,
+        Set<String> longOptions,
         String desc,
-        Field field) {
+        Field field) implements OptionsSupport {
 
     public static FlagInfo of(Field field) {
         var flag = field.getAnnotation(Flag.class);
-        return new FlagInfo(Strs.splitNames(flag.name()), flag.desc(), field);
+        var names = Strs.splitNames(flag.name());
+        var longOptions = Set.of(Strs.tail(names));
+        return new FlagInfo(names[0], longOptions, flag.desc(), field);
     }
 
     public void put(Map<String, FlagInfo> map) {
-        for (var name : names)
+        map.put(option(), this);
+        for (var name : longOptions())
             map.put(name, this);
     }
 }

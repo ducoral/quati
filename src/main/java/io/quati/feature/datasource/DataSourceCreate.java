@@ -37,8 +37,11 @@ public class DataSourceCreate implements Action {
 
     @Override
     public void completeOpt(String opt, String value, List<String> completion) {
-        if (opt.equals("-d") || opt.equals("--driver"))
-            completion.addAll(List.of("postgresql", "mysql", "oracle", "mssqlserver", "db2"));
+        var installedDrivers = List.of("postgresql", "mysql", "oracle", "mssqlserver", "db2");
+
+        if (opt.equals("-d") && !installedDrivers.contains(value))
+            completion.addAll(installedDrivers);
+
     }
 
     @Override
