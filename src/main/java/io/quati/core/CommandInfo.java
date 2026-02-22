@@ -9,10 +9,8 @@ import io.quati.api.Option;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -20,8 +18,8 @@ public record CommandInfo(
         String name,
         String desc,
         Optional<ArgumentInfo> args,
-        Map<String, OptionInfo> opts,
-        Map<String, FlagInfo> flags,
+        List<OptionsSupport> opts,
+        List<OptionsSupport> flags,
         Action action) {
 
     public static CommandInfo of(Class<? extends Action> commandClass) {
@@ -32,16 +30,16 @@ public record CommandInfo(
             var command = commandClass.getAnnotation(Command.class);
             var action = commandClass.getDeclaredConstructor().newInstance();
             ArgumentInfo arg = null;
-            var opts = new HashMap<String, OptionInfo>();
-            var flags = new HashMap<String, FlagInfo>();
+            var opts = new ArrayList<OptionsSupport>();
+            var flags = new ArrayList<OptionsSupport>();
             for (var field : commandClass.getDeclaredFields()) {
                 field.setAccessible(true);
                 if (field.isAnnotationPresent(Argument.class))
                     arg = ArgumentInfo.of(field);
                 else if (field.isAnnotationPresent(Option.class))
-                    OptionInfo.of(field).put(opts);
+                    opts.add(OptionInfo.of(field));
                 else if (field.isAnnotationPresent(Flag.class))
-                    FlagInfo.of(field).put(flags);
+                    flags.add(FlagInfo.of(field));
             }
             return new CommandInfo(command.name(), command.desc(), Optional.ofNullable(arg), opts, flags, action);
         } catch (Exception e) {
@@ -50,19 +48,41 @@ public record CommandInfo(
     }
 
     public boolean hasPosition(int position) {
-        return args.isPresent() && args.get().hasPosition(position);
+        return args.isPresent()
+                && args.get().hasPosition(position);
     }
 
     public boolean hasFlag(String name) {
-        return flags.containsKey(name);
+        return flags
+                .stream()
+                .anyMatch(opt -> opt.is(name));
     }
 
     public boolean hasOption(String name) {
-        return opts.containsKey(name);
+        return opts
+                .stream()
+                .anyMatch(opt -> opt.is(name));
+    }
+
+    public OptionInfo option(String name) {
+        for (var opt : opts)
+            if (opt.is(name))
+                return (OptionInfo) opt;
+        return null;
     }
 
     public String optionId(String name) {
-        return opts.get(name).option();
+        for (var opt : opts)
+            if (opt.is(name))
+                return opt.option();
+        return null;
+    }
+
+    public FlagInfo flag(String name) {
+        for (var flag : flags)
+            if (flag.is(name))
+                return (FlagInfo) flag;
+        return null;
     }
 
     public void addArgument(String argument) {
@@ -71,31 +91,40 @@ public record CommandInfo(
     }
 
     public void setFlag(String name) {
-        if (hasFlag(name))
-            setValue(action, flags.get(name).field(), Boolean.TRUE);
+        var info = flag(name);
+        if (info != null)
+            setValue(action, info.field(), Boolean.TRUE);
     }
 
     public void putOption(String name, String value) {
-        if (hasOption(name))
-            setValue(action, opts.get(name).field(), value);
+        var info = option(name);
+        if (info != null)
+            setValue(action, info.field(), value);
     }
 
     public boolean existsStartingWith(String partialName) {
-        return opts().keySet().stream().anyMatch(opt -> opt.startsWith(partialName))
-                || flags().keySet().stream().anyMatch(flag -> flag.startsWith(partialName));
+        return opts().stream().anyMatch(opt -> opt.startsWith(partialName))
+                || flags().stream().anyMatch(flag -> flag.startsWith(partialName));
     }
 
     public Set<String> flagsAndOptions() {
-        var names = new HashSet<>(flags.keySet());
-        names.addAll(opts.keySet());
+        var names = new HashSet<String>();
+        opts.forEach(opt -> {
+            names.add(opt.option());
+            names.addAll(opt.longOptions());
+        });
+        flags.forEach(flag -> {
+            names.add(flag.option());
+            names.addAll(flag.longOptions());
+        });
         return names;
     }
 
-    public boolean hasRoomFor(String opt) {
-        if (!hasOption(opt))
+    public boolean hasRoomFor(String option) {
+        var info = option(option);
+        if (info == null)
             return false;
         try {
-            var info = opts().get(opt);
             var arity = info.arity();
             var value = info.field().get(action);
             return switch (value) {

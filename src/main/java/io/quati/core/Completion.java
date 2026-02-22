@@ -95,5 +95,4 @@ public class Completion {
         System.out.println(String.join(" ", list.toArray(new String[0])));
         System.exit(0);
     }
-
 }

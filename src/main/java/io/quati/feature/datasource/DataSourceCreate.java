@@ -41,7 +41,6 @@ public class DataSourceCreate implements Action {
 
         if (opt.equals("-d") && !installedDrivers.contains(value))
             completion.addAll(installedDrivers);
-
     }
 
     @Override
