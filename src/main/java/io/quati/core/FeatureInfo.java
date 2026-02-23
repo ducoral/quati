@@ -37,10 +37,10 @@ public record FeatureInfo(String name, String desc, Class<? extends Action>[] co
         return false;
     }
 
-    public CommandInfo info(String command) {
+    public CommandInfo command(String name) {
         for (var commandClass : commandClasses)
-            if (commandClass.getAnnotation(Command.class).name().equals(command))
+            if (commandClass.getAnnotation(Command.class).name().equals(name))
                 return CommandInfo.of(commandClass);
-        throw new RuntimeException("The command '%s' do not exists for feature '%s'".formatted(command, name));
+        throw new RuntimeException("The command '%s' do not exists for feature '%s'".formatted(name, this.name));
     }
 }

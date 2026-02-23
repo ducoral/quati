@@ -45,6 +45,14 @@ public class DataSourceCreate implements Action {
 
     @Override
     public void execute(Context ctx) {
-
+        ctx.output("""
+                datasource: %s
+                driver: %s
+                host: %s
+                port: %s
+                database: %s
+                userName: %s
+                password: %s
+                """, datasource, driver, host, port, database, userName, password);
     }
 }

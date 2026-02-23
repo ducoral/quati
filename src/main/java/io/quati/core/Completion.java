@@ -7,25 +7,20 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class Completion {
-
-    private final Quati quati;
-
-    public Completion(Quati quati) {
-        this.quati = quati;
-    }
+public record Completion(Quati quati) {
 
     public void complete(String[] args) {
         if (args.length == 0 || !args[0].equals("quati"))
             return;
         completeFeature(Strs.tail(args));
+        System.exit(0);
     }
 
     private void completeFeature(String[] args) {
         if (args.length == 0)
             printAndExit(quati.features());
         else if (quati.exists(args[0]))
-            completeCommand(quati.info(args[0]), Strs.tail(args));
+            completeCommand(quati.feature(args[0]), Strs.tail(args));
         else if (quati.existsStartingWith(args[0]))
             printAndExit(quati.features());
     }
@@ -34,7 +29,7 @@ public class Completion {
         if (args.length == 0)
             printAndExit(feature.commands());
         else if (feature.exists(args[0]))
-            completeParameter(feature.info(args[0]), 1, Strs.tail(args));
+            completeParameter(feature.command(args[0]), 1, Strs.tail(args));
         else if (feature.existsStartingWith(args[0]))
             printAndExit(feature.commands());
     }

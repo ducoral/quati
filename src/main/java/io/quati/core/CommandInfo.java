@@ -16,10 +16,10 @@ import java.util.Set;
 
 public record CommandInfo(
         String name,
-        String desc,
-        Optional<ArgumentInfo> args,
-        List<OptionsSupport> opts,
-        List<OptionsSupport> flags,
+        String description,
+        Optional<ArgumentInfo> argumentOpt,
+        List<OptionsSupport> optionList,
+        List<OptionsSupport> flagList,
         Action action) {
 
     public static CommandInfo of(Class<? extends Action> commandClass) {
@@ -48,45 +48,45 @@ public record CommandInfo(
     }
 
     public boolean hasPosition(int position) {
-        return args.isPresent()
-                && args.get().hasPosition(position);
+        return argumentOpt.isPresent()
+                && argumentOpt.get().hasPosition(position);
     }
 
     public boolean hasFlag(String name) {
-        return flags
+        return flagList
                 .stream()
                 .anyMatch(opt -> opt.is(name));
     }
 
     public boolean hasOption(String name) {
-        return opts
+        return optionList
                 .stream()
                 .anyMatch(opt -> opt.is(name));
     }
 
     public OptionInfo option(String name) {
-        for (var opt : opts)
+        for (var opt : optionList)
             if (opt.is(name))
                 return (OptionInfo) opt;
         return null;
     }
 
     public String optionId(String name) {
-        for (var opt : opts)
+        for (var opt : optionList)
             if (opt.is(name))
                 return opt.option();
         return null;
     }
 
     public FlagInfo flag(String name) {
-        for (var flag : flags)
+        for (var flag : flagList)
             if (flag.is(name))
                 return (FlagInfo) flag;
         return null;
     }
 
     public void addArgument(String argument) {
-        args.ifPresent(argumentInfo ->
+        argumentOpt.ifPresent(argumentInfo ->
                 setValue(action, argumentInfo.field(), argument));
     }
 
@@ -103,17 +103,17 @@ public record CommandInfo(
     }
 
     public boolean existsStartingWith(String partialName) {
-        return opts().stream().anyMatch(opt -> opt.startsWith(partialName))
-                || flags().stream().anyMatch(flag -> flag.startsWith(partialName));
+        return optionList().stream().anyMatch(opt -> opt.startsWith(partialName))
+                || flagList().stream().anyMatch(flag -> flag.startsWith(partialName));
     }
 
     public Set<String> flagsAndOptions() {
         var names = new HashSet<String>();
-        opts.forEach(opt -> {
+        optionList.forEach(opt -> {
             names.add(opt.option());
             names.addAll(opt.longOptions());
         });
-        flags.forEach(flag -> {
+        flagList.forEach(flag -> {
             names.add(flag.option());
             names.addAll(flag.longOptions());
         });
@@ -129,8 +129,8 @@ public record CommandInfo(
             var value = info.field().get(action);
             return switch (value) {
                 case null -> arity.hasPosition(1);
-                case String str -> !str.isEmpty() && arity.hasPosition(1);
-                case List<?> list -> arity.hasPosition(list.size() + 1);
+                case String str -> str.isEmpty();
+                case List<?> list -> list.size() < arity.max();
                 default -> false;
             };
         } catch (IllegalAccessException e) {
@@ -138,8 +138,27 @@ public record CommandInfo(
         }
     }
 
-    public void validate() {
-        // TODO
+    public void validate(Quati quati) {
+        try {
+            if (argumentOpt.isPresent()) {
+                var arg = argumentOpt.get();
+                var arity = arg.arity();
+                var value = arg.field().get(action);
+                if (!arity.validate(value))
+                    quati.errorAndExit("The argument '%s' is invalid!%n", arg.label());
+            }
+            for (var option : optionList)
+                if (option instanceof OptionInfo optInfo) {
+                    var arity = optInfo.arity();
+                    var value = optInfo.field().get(action);
+                    if (!arity.validate(value))
+                        quati.errorAndExit("The option '%s' (%s) is required!%n",
+                                optInfo.option(),
+                                String.join(", ", optInfo.longOptions()));
+                }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @SuppressWarnings("unchecked")

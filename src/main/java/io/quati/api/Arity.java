@@ -1,5 +1,6 @@
 package io.quati.api;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 public interface Arity {
@@ -24,6 +25,17 @@ public interface Arity {
 
     default boolean hasPosition(int position) {
         return position <= max();
+    }
+
+    default boolean validate(Object value) {
+        return switch (value) {
+            case null -> min() == 0;
+            case String str -> !str.isBlank()
+                    || min() == 0;
+            case List<?> list -> (!list.isEmpty() && list.size() >= min())
+                    || min() == 0;
+            default -> false;
+        };
     }
 
     static Arity of(String arity) {
