@@ -138,6 +138,10 @@ public record CommandInfo(
         }
     }
 
+    public void validate() {
+        // TODO
+    }
+
     @SuppressWarnings("unchecked")
     private void setValue(Object object, Field field, Object value) {
         try {
