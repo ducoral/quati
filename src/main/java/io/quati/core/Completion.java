@@ -1,5 +1,6 @@
 package io.quati.core;
 
+import io.quati.api.Context;
 import io.quati.util.Strs;
 
 import java.util.ArrayList;
@@ -29,52 +30,52 @@ public record Completion(Quati quati) {
         if (args.length == 0)
             printAndExit(feature.commands());
         else if (feature.exists(args[0]))
-            completeParameter(feature.command(args[0]), 1, Strs.tail(args));
+            completeParameter(new QuatiContext(quati, feature), feature.command(args[0]), 1, Strs.tail(args));
         else if (feature.existsStartingWith(args[0]))
             printAndExit(feature.commands());
     }
 
-    private void completeParameter(CommandInfo cmd, int pos, String[] args) {
+    private void completeParameter(Context ctx, CommandInfo cmd, int pos, String[] args) {
         if (args.length == 0) {
             if (cmd.hasPosition(pos))
-                printAndExit(completion -> cmd.action().completeArg(pos, "", completion));
+                printAndExit(completion -> cmd.action().completeArg(ctx, pos, "", completion));
         } else if (args[0].startsWith("-"))
-            completeFlagOrOption(cmd, pos, args);
+            completeFlagOrOption(ctx, cmd, pos, args);
         else if (args.length == 1) {
             if (cmd.hasPosition(pos))
-                printAndExit(completion -> cmd.action().completeArg(pos, args[0], completion));
+                printAndExit(completion -> cmd.action().completeArg(ctx, pos, args[0], completion));
         } else {
             cmd.addArgument(args[0]);
-            completeParameter(cmd, pos + 1, Strs.tail(args));
+            completeParameter(ctx, cmd, pos + 1, Strs.tail(args));
         }
     }
 
-    private void completeFlagOrOption(CommandInfo cmd, int pos, String[] args) {
+    private void completeFlagOrOption(Context ctx, CommandInfo cmd, int pos, String[] args) {
         if (cmd.hasFlag(args[0])) {
             cmd.setFlag(args[0]);
-            completeParameter(cmd, pos + 1, Strs.tail(args));
+            completeParameter(ctx, cmd, pos + 1, Strs.tail(args));
         } else if (cmd.hasOption(args[0])) {
             var opt = args[0];
             args = Strs.tail(args);
             if (args.length == 0)
                 printAndExit(completion ->
-                        cmd.action().completeOpt(cmd.optionId(opt), "", completion));
+                        cmd.action().completeOpt(ctx, cmd.optionId(opt), "", completion));
             else
-                completeOption(cmd, opt, pos, args);
+                completeOption(ctx, cmd, opt, pos, args);
         } else if (cmd.existsStartingWith(args[0]))
             printAndExit(cmd.flagsAndOptions());
     }
 
-    private void completeOption(CommandInfo cmd, String opt, int pos, String[] args) {
+    private void completeOption(Context ctx, CommandInfo cmd, String opt, int pos, String[] args) {
         if (args[0].startsWith("-"))
-            completeParameter(cmd, pos, args);
+            completeParameter(ctx, cmd, pos, args);
         else if (args.length == 1) {
             if (cmd.hasRoomFor(opt))
                 printAndExit(completion ->
-                        cmd.action().completeOpt(cmd.optionId(opt), args[0], completion));
+                        cmd.action().completeOpt(ctx, cmd.optionId(opt), args[0], completion));
         } else {
             cmd.putOption(opt, args[0]);
-            completeOption(cmd, opt, pos, Strs.tail(args));
+            completeOption(ctx, cmd, opt, pos, Strs.tail(args));
         }
     }
 

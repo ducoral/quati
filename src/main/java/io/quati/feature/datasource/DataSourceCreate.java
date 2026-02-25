@@ -36,7 +36,7 @@ public class DataSourceCreate implements Action {
     String password;
 
     @Override
-    public void completeOpt(String opt, String value, List<String> completion) {
+    public void completeOpt(Context ctx, String opt, String value, List<String> completion) {
         var installedDrivers = List.of("postgresql", "mysql", "oracle", "mssqlserver", "db2");
 
         if (opt.equals("-d") && !installedDrivers.contains(value))

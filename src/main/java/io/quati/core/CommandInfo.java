@@ -164,7 +164,7 @@ public record CommandInfo(
     @SuppressWarnings("unchecked")
     private void setValue(Object object, Field field, Object value) {
         try {
-            if (field.getType() == value.getClass())
+            if (wrap(field.getType()) == wrap(value.getClass()))
                 field.set(object, value);
             else if (isStringList(field) && value instanceof String string) {
                 var list = (List<String>) field.get(object);
@@ -177,6 +177,13 @@ public record CommandInfo(
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static Class<?> wrap(Class<?> primitive) {
+        if (primitive == boolean.class)
+            return Boolean.class;
+        else
+            return primitive;
     }
 
     private static boolean isStringList(Field field) {

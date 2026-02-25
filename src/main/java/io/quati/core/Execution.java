@@ -47,7 +47,8 @@ public record Execution(Quati quati) {
     private void parseOption(CommandInfo command, int pos, String option, String[] args) {
         if (command.hasFlag(option)) {
             command.setFlag(option);
-            parseCommand(command, pos, Strs.tail(args));
+            if (args.length > 0)
+                parseCommand(command, pos, Strs.tail(args));
         } else if (command.hasOption(option)) {
             if (args.length == 0 || args[0].startsWith("-"))
                 quati.errorAndExit("Missing value of option '%s'%n", option);
