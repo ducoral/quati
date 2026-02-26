@@ -1,88 +1,98 @@
 package io.quati.core;
 
 import io.quati.api.Context;
-import io.quati.util.Strs;
+import io.quati.util.Utils;
+import org.jline.reader.Candidate;
+import org.jline.reader.Completer;
+import org.jline.reader.LineReader;
+import org.jline.reader.ParsedLine;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Consumer;
 
-public record Completion(Quati quati) {
+public record Completion(Quati quati) implements Completer {
 
     public void complete(String[] args) {
         if (args.length == 0 || !args[0].equals("quati"))
             return;
-        completeFeature(Strs.tail(args));
-        System.exit(0);
+        var candidates = new ArrayList<Candidate>();
+        completeFeature(Utils.tail(args), candidates);
+        if (candidates.isEmpty())
+            return;
+        printAndExit(candidates.stream()
+                .map(Candidate::value)
+                .toList());
     }
 
-    private void completeFeature(String[] args) {
+    @Override
+    public void complete(LineReader reader, ParsedLine line, List<Candidate> candidates) {
+        completeFeature(line.words().toArray(new String[0]), candidates);
+    }
+
+    private void completeFeature(String[] args, List<Candidate> candidates) {
         if (args.length == 0)
-            printAndExit(quati.features());
+            candidates.addAll(quati.candidates());
         else if (quati.exists(args[0]))
-            completeCommand(quati.feature(args[0]), Strs.tail(args));
+            completeCommand(quati.feature(args[0]), Utils.tail(args), candidates);
         else if (quati.existsStartingWith(args[0]))
-            printAndExit(quati.features());
+            candidates.addAll(quati.candidates());
     }
 
-    private void completeCommand(FeatureInfo feature, String[] args) {
+    private void completeCommand(FeatureInfo feature, String[] args, List<Candidate> candidates) {
         if (args.length == 0)
-            printAndExit(feature.commands());
+            candidates.addAll(feature.candidates());
         else if (feature.exists(args[0]))
-            completeParameter(new QuatiContext(quati, feature), feature.command(args[0]), 1, Strs.tail(args));
+            completeParameter(
+                    new QuatiContext(quati, feature),
+                    feature.command(args[0]),
+                    1,
+                    Utils.tail(args),
+                    candidates);
         else if (feature.existsStartingWith(args[0]))
-            printAndExit(feature.commands());
+            candidates.addAll(feature.candidates());
     }
 
-    private void completeParameter(Context ctx, CommandInfo cmd, int pos, String[] args) {
+    private void completeParameter(Context ctx, CommandInfo cmd, int pos, String[] args, List<Candidate> candidates) {
         if (args.length == 0) {
             if (cmd.hasPosition(pos))
-                printAndExit(completion -> cmd.action().completeArg(ctx, pos, "", completion));
+                cmd.action().completeArg(ctx, pos, "", candidates);
         } else if (args[0].startsWith("-"))
-            completeFlagOrOption(ctx, cmd, pos, args);
+            completeFlagOrOption(ctx, cmd, pos, args, candidates);
         else if (args.length == 1) {
             if (cmd.hasPosition(pos))
-                printAndExit(completion -> cmd.action().completeArg(ctx, pos, args[0], completion));
+                cmd.action().completeArg(ctx, pos, args[0], candidates);
         } else {
             cmd.addArgument(args[0]);
-            completeParameter(ctx, cmd, pos + 1, Strs.tail(args));
+            completeParameter(ctx, cmd, pos + 1, Utils.tail(args), candidates);
         }
     }
 
-    private void completeFlagOrOption(Context ctx, CommandInfo cmd, int pos, String[] args) {
+    private void completeFlagOrOption(Context ctx, CommandInfo cmd, int pos, String[] args, List<Candidate> candidates) {
         if (cmd.hasFlag(args[0])) {
             cmd.setFlag(args[0]);
-            completeParameter(ctx, cmd, pos + 1, Strs.tail(args));
+            completeParameter(ctx, cmd, pos + 1, Utils.tail(args), candidates);
         } else if (cmd.hasOption(args[0])) {
             var opt = args[0];
-            args = Strs.tail(args);
+            args = Utils.tail(args);
             if (args.length == 0)
-                printAndExit(completion ->
-                        cmd.action().completeOpt(ctx, cmd.optionId(opt), "", completion));
+                cmd.action().completeOpt(ctx, cmd.optionId(opt), "", candidates);
             else
-                completeOption(ctx, cmd, opt, pos, args);
+                completeOption(ctx, cmd, opt, pos, args, candidates);
         } else if (cmd.existsStartingWith(args[0]))
-            printAndExit(cmd.flagsAndOptions());
+            candidates.addAll(cmd.candidates());
     }
 
-    private void completeOption(Context ctx, CommandInfo cmd, String opt, int pos, String[] args) {
+    private void completeOption(Context ctx, CommandInfo cmd, String opt, int pos, String[] args, List<Candidate> candidates) {
         if (args[0].startsWith("-"))
-            completeParameter(ctx, cmd, pos, args);
+            completeParameter(ctx, cmd, pos, args, candidates);
         else if (args.length == 1) {
             if (cmd.hasRoomFor(opt))
-                printAndExit(completion ->
-                        cmd.action().completeOpt(ctx, cmd.optionId(opt), args[0], completion));
+                cmd.action().completeOpt(ctx, cmd.optionId(opt), args[0], candidates);
         } else {
             cmd.putOption(opt, args[0]);
-            completeOption(ctx, cmd, opt, pos, Strs.tail(args));
+            completeOption(ctx, cmd, opt, pos, Utils.tail(args), candidates);
         }
-    }
-
-    private void printAndExit(Consumer<List<String>> completion) {
-        var list = new ArrayList<String>();
-        completion.accept(list);
-        printAndExit(list);
     }
 
     private void printAndExit(Collection<String> collection) {

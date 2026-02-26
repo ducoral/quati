@@ -4,6 +4,8 @@ import io.quati.api.Action;
 import io.quati.api.Command;
 import io.quati.api.Context;
 import io.quati.api.Argument;
+import io.quati.util.Utils;
+import org.jline.reader.Candidate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,12 +17,14 @@ public class DriverRemove implements Action {
     List<String> drivers;
 
     @Override
-    public void completeArg(Context ctx, int argPos, String value, List<String> completion) {
+    public void completeArg(Context ctx, int argPos, String value, List<Candidate> candidates) {
         var installed = new ArrayList<>(DriverFeature.getInstalled(ctx));
         if (drivers != null)
             installed.removeAll(drivers);
         installed.remove(value);
-        completion.addAll(installed);
+        installed.stream()
+                .map(driver -> Utils.candidate(driver, null))
+                .forEach(candidates::add);
     }
 
     @Override

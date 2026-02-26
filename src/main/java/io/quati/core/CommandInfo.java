@@ -5,14 +5,14 @@ import io.quati.api.Argument;
 import io.quati.api.Command;
 import io.quati.api.Flag;
 import io.quati.api.Option;
+import io.quati.util.Utils;
+import org.jline.reader.Candidate;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public record CommandInfo(
         String name,
@@ -45,6 +45,21 @@ public record CommandInfo(
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public List<Candidate> candidates() {
+        var list = new ArrayList<Candidate>();
+        optionList.stream()
+                .filter(option -> option.hasRoomFor(this))
+                .map(OptionInfo.class::cast)
+                .map(opt -> Utils.candidate(opt.option(), opt.label(), opt.description()))
+                .forEach(list::add);
+        flagList.stream()
+                .filter(flag -> flag.hasRoomFor(this))
+                .map(FlagInfo.class::cast)
+                .map(flag -> Utils.candidate(flag.option(), flag.option(), flag.description()))
+                .forEach(list::add);
+        return list;
     }
 
     public boolean hasPosition(int position) {
@@ -107,26 +122,18 @@ public record CommandInfo(
                 || flagList().stream().anyMatch(flag -> flag.startsWith(partialName));
     }
 
-    public Set<String> flagsAndOptions() {
-        var names = new HashSet<String>();
-        optionList.forEach(opt -> {
-            names.add(opt.option());
-            names.addAll(opt.longOptions());
-        });
-        flagList.forEach(flag -> {
-            names.add(flag.option());
-            names.addAll(flag.longOptions());
-        });
-        return names;
-    }
-
-    public boolean hasRoomFor(String option) {
-        var info = option(option);
-        if (info == null)
-            return false;
+    public boolean hasRoomFor(String flagOption) {
         try {
-            var arity = info.arity();
-            var value = info.field().get(action);
+            var flagInfo = flag(flagOption);
+            if (flagInfo != null) {
+                var value = flagInfo.field().get(action);
+                return value instanceof Boolean bool && !bool;
+            }
+            var optionInfo = option(flagOption);
+            if (optionInfo == null)
+                return false;
+            var arity = optionInfo.arity();
+            var value = optionInfo.field().get(action);
             return switch (value) {
                 case null -> arity.hasPosition(1);
                 case String str -> str.isEmpty();
@@ -138,24 +145,29 @@ public record CommandInfo(
         }
     }
 
-    public void validate(Quati quati) {
+    public boolean validate(Quati quati) {
         try {
             if (argumentOpt.isPresent()) {
                 var arg = argumentOpt.get();
                 var arity = arg.arity();
                 var value = arg.field().get(action);
-                if (!arity.validate(value))
-                    quati.errorAndExit("The argument '%s' is invalid!%n", arg.label());
+                if (!arity.validate(value)) {
+                    quati.error("The argument '%s' is invalid!%n", arg.label());
+                    return false;
+                }
             }
             for (var option : optionList)
                 if (option instanceof OptionInfo optInfo) {
                     var arity = optInfo.arity();
                     var value = optInfo.field().get(action);
-                    if (!arity.validate(value))
-                        quati.errorAndExit("The option '%s' (%s) is required!%n",
+                    if (!arity.validate(value)) {
+                        quati.error("The option '%s' (%s) is required!%n",
                                 optInfo.option(),
                                 String.join(", ", optInfo.longOptions()));
+                        return false;
+                    }
                 }
+            return true;
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
         }

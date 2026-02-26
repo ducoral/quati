@@ -5,6 +5,8 @@ import io.quati.api.Command;
 import io.quati.api.Context;
 import io.quati.api.Option;
 import io.quati.api.Argument;
+import io.quati.util.Utils;
+import org.jline.reader.Candidate;
 
 import java.util.List;
 
@@ -17,7 +19,7 @@ public class DataSourceCreate implements Action {
     @Argument(label = "NAME", desc = "name of the datasource to be created", arity = ONE)
     String datasource;
 
-    @Option(name = "-d|--driver", desc = "name of the installed driver", label = "DRIVER", arity = ONE)
+    @Option(name = "-d|--driver", desc = "name of the JDBC driver", label = "DRIVER", arity = ONE)
     String driver;
 
     @Option(name = "-H|--host", label = "HOST", desc = "database host", arity = ONE)
@@ -36,11 +38,13 @@ public class DataSourceCreate implements Action {
     String password;
 
     @Override
-    public void completeOpt(Context ctx, String opt, String value, List<String> completion) {
+    public void completeOpt(Context ctx, String opt, String value, List<Candidate> candidates) {
         var installedDrivers = List.of("postgresql", "mysql", "oracle", "mssqlserver", "db2");
 
         if (opt.equals("-d") && !installedDrivers.contains(value))
-            completion.addAll(installedDrivers);
+            installedDrivers.stream()
+                    .map(Utils::candidate)
+                    .forEach(candidates::add);
     }
 
     @Override

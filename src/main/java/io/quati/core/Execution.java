@@ -1,6 +1,6 @@
 package io.quati.core;
 
-import io.quati.util.Strs;
+import io.quati.util.Utils;
 
 public record Execution(Quati quati) {
 
@@ -8,64 +8,71 @@ public record Execution(Quati quati) {
         if (args.length == 0)
             quati.printUsage();
         else if (quati.exists(args[0]))
-            executeFeature(quati.feature(args[0]), Strs.tail(args));
+            executeFeature(quati.feature(args[0]), Utils.tail(args));
         else
             quati.error("The feature '%s' do not exists%n", args[0]);
-        System.exit(1);
     }
 
     private void executeFeature(FeatureInfo feature, String[] args) {
         if (args.length == 0)
             quati.printUsage(feature.name());
         else if (feature.exists(args[0]))
-            executeCommand(feature, args[0], Strs.tail(args));
+            executeCommand(feature, args[0], Utils.tail(args));
         else
             quati.error("The command '%s' do not exists for the feature '%s'%n", args[0], feature.name());
     }
 
     private void executeCommand(FeatureInfo feature, String commandName, String[] args) {
         var command = feature.command(commandName);
-        parseCommand(command, 1, args);
-        command.validate(quati);
-        command
-                .action()
-                .execute(new QuatiContext(quati, feature));
+
+        if (parseCommand(command, 1, args) && command.validate(quati))
+            command
+                    .action()
+                    .execute(new QuatiContext(quati, feature));
     }
 
-    private void parseCommand(CommandInfo command, int pos, String[] args) {
+    private boolean parseCommand(CommandInfo command, int pos, String[] args) {
         if (args.length == 0)
-            return;
+            return true;
         if (args[0].startsWith("-"))
-            parseOption(command, pos, args[0], Strs.tail(args));
+            return parseOption(command, pos, args[0], Utils.tail(args));
         else if (command.hasPosition(pos)) {
             command.addArgument(args[0]);
-            parseCommand(command, pos + 1, Strs.tail(args));
-        } else
-            quati.errorAndExit("The argument '%s' is invalid at position '%s'%n", args[0], pos);
+            return parseCommand(command, pos + 1, Utils.tail(args));
+        } else {
+            quati.error("The argument '%s' is invalid at position '%s'%n", args[0], pos);
+            return false;
+        }
     }
 
-    private void parseOption(CommandInfo command, int pos, String option, String[] args) {
+    private boolean parseOption(CommandInfo command, int pos, String option, String[] args) {
         if (command.hasFlag(option)) {
             command.setFlag(option);
             if (args.length > 0)
-                parseCommand(command, pos, Strs.tail(args));
+                return parseCommand(command, pos, Utils.tail(args));
+            return true;
         } else if (command.hasOption(option)) {
-            if (args.length == 0 || args[0].startsWith("-"))
-                quati.errorAndExit("Missing value of option '%s'%n", option);
-            else if (command.hasRoomFor(option)) {
+            if (args.length == 0 || args[0].startsWith("-")) {
+                quati.error("Missing value of option '%s'%n", option);
+                return false;
+            } else if (command.hasRoomFor(option)) {
                 command.putOption(option, args[0]);
-                args = Strs.tail(args);
+                args = Utils.tail(args);
                 if (args.length == 0)
-                    return;
+                    return true;
                 if (args[0].startsWith("-"))
-                    parseOption(command, pos, args[0], Strs.tail(args));
+                    return parseOption(command, pos, args[0], Utils.tail(args));
                 else if (command.hasRoomFor(option))
-                    parseOption(command, pos, option, args);
+                    return parseOption(command, pos, option, args);
                 else
-                    parseCommand(command, pos, args);
-            } else
-                quati.errorAndExit("The value '%s' is invalid for option '%s'%n", args[0], option);
-        } else
-            quati.errorAndExit("Invalid option '%s'%n", option);
+                    return parseCommand(command, pos, args);
+            } else {
+                quati.error("The value '%s' is invalid for option '%s'%n", args[0], option);
+                return false;
+            }
+        } else {
+            quati.error("Invalid option '%s'%n", option);
+            return false;
+        }
     }
 }

@@ -4,7 +4,7 @@ import io.quati.api.Action;
 import io.quati.api.Command;
 import io.quati.api.Context;
 import io.quati.api.Flag;
-import io.quati.util.Strs;
+import io.quati.util.Utils;
 
 @Command(name = "list", desc = "list JDBC drivers")
 public class DriverList implements Action {
@@ -23,7 +23,7 @@ public class DriverList implements Action {
                 var status = installedList.contains(driver)
                         ? INSTALLED
                         : AVAILABLE;
-                ctx.output("%s%s%n", Strs.justifyLeft(driver, 35), status);
+                ctx.output("%s%s%n", Utils.justifyLeft(driver, 35), status);
             }
     }
 }

@@ -17,4 +17,13 @@ public interface OptionsSupport {
         return option().startsWith(partialName)
                 || longOptions().stream().anyMatch(option -> option.startsWith(partialName));
     }
+
+    default boolean hasRoomFor(CommandInfo command) {
+        if (!command.hasRoomFor(option()))
+            return false;
+        for (var opt : longOptions())
+            if (!command.hasRoomFor(opt))
+                return false;
+        return true;
+    }
 }

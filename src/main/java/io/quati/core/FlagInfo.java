@@ -1,7 +1,7 @@
 package io.quati.core;
 
 import io.quati.api.Flag;
-import io.quati.util.Strs;
+import io.quati.util.Utils;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -10,13 +10,13 @@ import java.util.Set;
 public record FlagInfo(
         String option,
         Set<String> longOptions,
-        String desc,
+        String description,
         Field field) implements OptionsSupport {
 
     public static FlagInfo of(Field field) {
         var flag = field.getAnnotation(Flag.class);
-        var names = Strs.splitNames(flag.name());
-        var longOptions = Set.of(Strs.tail(names));
+        var names = Utils.splitNames(flag.name());
+        var longOptions = Set.of(Utils.tail(names));
         return new FlagInfo(names[0], longOptions, flag.desc(), field);
     }
 

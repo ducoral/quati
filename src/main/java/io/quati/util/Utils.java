@@ -1,8 +1,22 @@
 package io.quati.util;
 
+import org.jline.reader.Candidate;
+
 import java.util.Arrays;
 
-public class Strs {
+public class Utils {
+
+    public static Candidate candidate(String name) {
+        return candidate(name, name, null);
+    }
+
+    public static Candidate candidate(String name, String description) {
+        return candidate(name, name, description);
+    }
+
+    public static Candidate candidate(String name, String display, String description) {
+        return new Candidate(name, display, null, description, null, null, true);
+    }
 
     public static String[] splitNames(String names) {
         names = names.replaceAll("\\s+", "");
