@@ -1,5 +1,6 @@
 package io.quati.feature.driver;
 
+
 import io.quati.api.Action;
 import io.quati.api.Argument;
 import io.quati.api.Command;
@@ -10,22 +11,21 @@ import org.jline.reader.Candidate;
 import java.util.ArrayList;
 import java.util.List;
 
-@Command(name = "install", description = "install JDBC driver")
-public class DriverInstall implements Action {
+@Command(name = "load", description = "load JDBC driver to JVM")
+public class DriverLoad implements Action {
 
-    @Argument(label = "DRIVER", desc = "name of driver to be installed")
+    @Argument(label = "DRIVER", desc = "driver to be loaded")
     List<String> drivers;
 
     @Override
     public void completeArg(Context ctx, int argPos, String value, List<Candidate> candidates) {
         var feature = ctx.quati().feature(DriverFeature.class);
-        var available = new ArrayList<>(feature.getAll());
-        available.removeAll(feature.getInstalled());
+        var installed = new ArrayList<>(feature.getInstalled());
         if (drivers != null)
-            available.removeAll(drivers);
-        available.remove(value);
-        available.stream()
-                .map(Utils::candidate)
+            installed.removeAll(drivers);
+        installed.remove(value);
+        installed.stream()
+                .map(driver -> Utils.candidate(driver, null))
                 .forEach(candidates::add);
     }
 
@@ -33,6 +33,9 @@ public class DriverInstall implements Action {
     public void execute(Context ctx) {
         if (drivers == null)
             return;
-        drivers.forEach(ctx.quati().feature(DriverFeature.class)::install);
+        var feature = ctx.quati().feature(DriverFeature.class);
+        for (var driver : drivers)
+            feature.load(driver);
+
     }
 }

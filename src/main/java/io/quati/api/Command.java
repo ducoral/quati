@@ -11,5 +11,5 @@ public @interface Command {
 
     String name();
 
-    String desc();
+    String description();
 }

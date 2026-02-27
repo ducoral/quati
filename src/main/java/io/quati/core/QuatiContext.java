@@ -6,16 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class QuatiContext implements Context {
-
-    final Quati quati;
-
-    final FeatureInfo feature;
-
-    QuatiContext(Quati quati, FeatureInfo feature) {
-        this.quati = quati;
-        this.feature = feature;
-    }
+record QuatiContext(Quati quati, FeatureInfo featureInfo) implements Context {
 
     @Override
     public void output(String format, Object... args) {
@@ -31,7 +22,7 @@ public class QuatiContext implements Context {
     public Path repository() {
         var repo = quati
                 .repository()
-                .resolve(feature.name());
+                .resolve(featureInfo.name());
         try {
             Files.createDirectories(repo);
         } catch (IOException e) {

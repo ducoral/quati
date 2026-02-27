@@ -41,7 +41,7 @@ public record CommandInfo(
                 else if (field.isAnnotationPresent(Flag.class))
                     flags.add(FlagInfo.of(field));
             }
-            return new CommandInfo(command.name(), command.desc(), Optional.ofNullable(arg), opts, flags, action);
+            return new CommandInfo(command.name(), command.description(), Optional.ofNullable(arg), opts, flags, action);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

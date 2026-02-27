@@ -30,6 +30,10 @@ public class Scan {
         return ch == current();
     }
 
+    public boolean isIgnoreCase(char ch) {
+        return Character.toLowerCase(ch) == Character.toLowerCase(current());
+    }
+
     public boolean notIs(char ch) {
         return !is(ch);
     }
@@ -37,6 +41,13 @@ public class Scan {
     public boolean isOneOf(char... chars) {
         for (char c : chars)
             if (c == current())
+                return true;
+        return false;
+    }
+
+    public boolean isOneOfIgnoreCase(char... chars) {
+        for (char c : chars)
+            if (Character.toLowerCase(c) == Character.toLowerCase(current()))
                 return true;
         return false;
     }
@@ -51,6 +62,11 @@ public class Scan {
 
     public boolean isLetterOrDigit() {
         return Character.isLetterOrDigit(current());
+    }
+
+    public boolean isHexDigit() {
+        return isDigit()
+                || isOneOfIgnoreCase('a', 'b', 'c', 'd', 'e', 'f');
     }
 
     public boolean isIdentifier() {

@@ -61,7 +61,17 @@ public class Quati {
                 .anyMatch(feature -> feature.startsWith(partial));
     }
 
-    public FeatureInfo feature(String name) {
+    public <T extends AbstractFeature> T feature(Class<T> featureClass) {
+        try {
+            var feature = featureClass.getConstructor().newInstance();
+            feature.context = new QuatiContext(this, FeatureInfo.of(featureClass));
+            return feature;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public FeatureInfo featureInfo(String name) {
         return featuresMap.get(name);
     }
 

@@ -1,5 +1,8 @@
 package io.quati.api;
 
+import io.quati.core.FeatureInfo;
+import io.quati.core.Quati;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -7,6 +10,10 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 
 public interface Context {
+
+    Quati quati();
+
+    FeatureInfo featureInfo();
 
     void output(String format, Object... args);
 

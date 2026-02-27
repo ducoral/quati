@@ -11,7 +11,7 @@ public @interface Feature {
 
     String name();
 
-    String desc();
+    String description();
 
     Class<? extends Action>[] commands();
 }

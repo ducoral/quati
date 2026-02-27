@@ -8,7 +8,7 @@ public record Execution(Quati quati) {
         if (args.length == 0)
             quati.printUsage();
         else if (quati.exists(args[0]))
-            executeFeature(quati.feature(args[0]), Utils.tail(args));
+            executeFeature(quati.featureInfo(args[0]), Utils.tail(args));
         else
             quati.error("The feature '%s' do not exists%n", args[0]);
     }
@@ -23,7 +23,7 @@ public record Execution(Quati quati) {
     }
 
     private void executeCommand(FeatureInfo feature, String commandName, String[] args) {
-        var command = feature.command(commandName);
+        var command = feature.commandInfo(commandName);
 
         if (parseCommand(command, 1, args) && command.validate(quati))
             command

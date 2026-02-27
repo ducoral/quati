@@ -13,7 +13,7 @@ import java.util.List;
 import static io.quati.api.Arity.ONE;
 import static io.quati.api.Arity.ZERO_OR_ONE;
 
-@Command(name = "create", desc = "create datasource")
+@Command(name = "create", description = "create datasource")
 public class DataSourceCreate implements Action {
 
     @Argument(label = "NAME", desc = "name of the datasource to be created", arity = ONE)

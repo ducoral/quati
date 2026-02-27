@@ -18,7 +18,9 @@ public record ReadEvalPrintLoop(Quati quati) {
                     .build();
             quati.printNameAndVersion();
             while (true) {
-                var line = reader.readLine(AnsiColor.filter(":bb:quati>:: "));
+                var line = reader.readLine(AnsiColor.filter("`x784a20*`quati>`:` "));
+                if (line.isBlank())
+                    continue;
                 if (isExist(line))
                     break;
                 args = line.split("\\s+");

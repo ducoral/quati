@@ -1,10 +1,11 @@
 package io.quati.feature.datasource;
 
 import io.quati.api.Feature;
+import io.quati.core.AbstractFeature;
 
 @Feature(
         name = "datasource",
-        desc = "JDBC connection configuration",
+        description = "JDBC connection configuration",
         commands = {
                 DataSourceList.class,
                 DataSourceCreate.class,
@@ -12,5 +13,5 @@ import io.quati.api.Feature;
                 DataSourceInfo.class,
                 DataSourceRemove.class
         })
-public class DataSourceFeature {
+public class DataSourceFeature extends AbstractFeature {
 }
