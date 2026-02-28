@@ -15,6 +15,10 @@ public class DataSourceRemove implements Action {
 
     @Override
     public void execute(Context ctx) {
-
+        var feature = ctx.quati().feature(DataSourceFeature.class);
+        if (feature.names().contains(datasource))
+            feature.remove(datasource);
+        else
+            ctx.error("The DataSource `r`%s`:` do not exists!%n", datasource);
     }
 }

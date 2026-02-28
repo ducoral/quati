@@ -11,5 +11,5 @@ public @interface Flag {
 
     String name();
 
-    String desc();
+    String description();
 }

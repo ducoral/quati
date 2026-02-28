@@ -17,7 +17,7 @@ public record FlagInfo(
         var flag = field.getAnnotation(Flag.class);
         var names = Utils.splitNames(flag.name());
         var longOptions = Set.of(Utils.tail(names));
-        return new FlagInfo(names[0], longOptions, flag.desc(), field);
+        return new FlagInfo(names[0], longOptions, flag.description(), field);
     }
 
     public void put(Map<String, FlagInfo> map) {

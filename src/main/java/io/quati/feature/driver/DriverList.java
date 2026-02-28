@@ -12,14 +12,14 @@ public class DriverList implements Action {
     static final String INSTALLED = "`gg*`[INSTALLED]`:`";
     static final String AVAILABLE = "`yy`[AVAILABLE]`:`";
 
-    @Flag(name = "-i|--installed", desc = "list only installed JDBC drivers")
+    @Flag(name = "-i|--installed", description = "list only installed JDBC drivers")
     boolean installed;
 
     @Override
     public void execute(Context ctx) {
         var feature = ctx.quati().feature(DriverFeature.class);
-        var installedList = feature.getInstalled();
-        for (var driver : feature.getAll())
+        var installedList = feature.installed();
+        for (var driver : feature.available())
             if (!installed || installedList.contains(driver)) {
                 var status = installedList.contains(driver)
                         ? INSTALLED

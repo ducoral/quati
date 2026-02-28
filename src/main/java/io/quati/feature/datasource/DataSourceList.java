@@ -3,20 +3,23 @@ package io.quati.feature.datasource;
 import io.quati.api.Action;
 import io.quati.api.Command;
 import io.quati.api.Context;
-import io.quati.core.AnsiColor;
-import io.quati.core.AnsiStyle;
+import io.quati.util.Utils;
 
 @Command(name = "list", description = "list datasource")
 public class DataSourceList implements Action {
 
     @Override
     public void execute(Context ctx) {
-        var str = AnsiColor.BLUE.fg("azul bold italico", AnsiStyle.BOLD_ITALIC);
-        str += " normal ";
-        str += AnsiColor.GREEN.fg("verde normal italico", AnsiStyle.ITALIC);
-        str += " normal ";
-        str += AnsiColor.RED.fg("vermelho bold", AnsiStyle.BOLD);
-        str += " normal %n";
-        ctx.output(str);
+        ctx.output(
+                "`b*`%s %s %s`:`%n",
+                Utils.justifyLeft("datasource", 15),
+                Utils.justifyLeft("driver", 15),
+                Utils.justifyLeft("host", 30));
+        for (var ds : ctx.quati().feature(DataSourceFeature.class).dataSources())
+            ctx.output(
+                    "`*`%s`:` %s %s%n",
+                    Utils.justifyLeft(ds.name(), 15),
+                    Utils.justifyLeft(ds.driver(), 15),
+                    Utils.justifyLeft(ds.host(), 30));
     }
 }

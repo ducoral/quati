@@ -1,6 +1,5 @@
 package io.quati.feature.driver;
 
-
 import io.quati.api.Action;
 import io.quati.api.Argument;
 import io.quati.api.Command;
@@ -20,7 +19,7 @@ public class DriverLoad implements Action {
     @Override
     public void completeArg(Context ctx, int argPos, String value, List<Candidate> candidates) {
         var feature = ctx.quati().feature(DriverFeature.class);
-        var installed = new ArrayList<>(feature.getInstalled());
+        var installed = new ArrayList<>(feature.installed());
         if (drivers != null)
             installed.removeAll(drivers);
         installed.remove(value);

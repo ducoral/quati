@@ -19,8 +19,8 @@ public class DriverInstall implements Action {
     @Override
     public void completeArg(Context ctx, int argPos, String value, List<Candidate> candidates) {
         var feature = ctx.quati().feature(DriverFeature.class);
-        var available = new ArrayList<>(feature.getAll());
-        available.removeAll(feature.getInstalled());
+        var available = new ArrayList<>(feature.available());
+        available.removeAll(feature.installed());
         if (drivers != null)
             available.removeAll(drivers);
         available.remove(value);

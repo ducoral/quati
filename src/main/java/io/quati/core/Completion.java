@@ -30,7 +30,7 @@ public record Completion(Quati quati) implements Completer {
         completeFeature(line.words().toArray(new String[0]), candidates);
     }
 
-    private void completeFeature(String[] args, List<Candidate> candidates) {
+    public void completeFeature(String[] args, List<Candidate> candidates) {
         if (args.length == 0)
             candidates.addAll(quati.candidates());
         else if (quati.exists(args[0]))
