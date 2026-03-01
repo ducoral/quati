@@ -1,6 +1,5 @@
 package io.quati.feature.datasource;
 
-
 import io.quati.api.Action;
 import io.quati.api.Argument;
 import io.quati.api.Command;
@@ -11,40 +10,35 @@ import org.jline.reader.Candidate;
 
 import java.util.List;
 
-import static io.quati.api.Arity.ONE;
-
-@Command(name = "info", description = "displays the datasource configuration")
+@Command(name = "info", description = "display the datasource configuration")
 public class DataSourceInfo implements Action {
 
-    @Argument(label = "NAME", desc = "name of the datasource to be displayed", arity = ONE)
-    String datasource;
+    @Argument(label = "NAME", desc = "datasource names to be displayed")
+    List<String> datasources;
 
-    @Flag(name = "-p", description = "show the password")
+    @Flag(name = "-s|--show-password", description = "show the password")
     boolean showPassword;
 
     @Override
     public void completeArg(Context ctx, int argPos, String value, List<Candidate> candidates) {
-        if (datasource == null)
-            ctx.quati()
-                    .feature(DataSourceFeature.class)
-                    .names()
-                    .forEach(name -> candidates.add(Utils.candidate(name)));
+        var names = ctx.quati().feature(DataSourceFeature.class).names();
+        if (!names.contains(value))
+            names.stream()
+                    .filter(name -> datasources == null || !datasources.contains(name))
+                    .map(Utils::candidate)
+                    .forEach(candidates::add);
     }
 
     @Override
     public void execute(Context ctx) {
         var feature = ctx.quati().feature(DataSourceFeature.class);
-        var ds = feature.find(datasource);
-        if (ds == null) {
-            ctx.error("The DataSource `r`%s`:` do not exists!%n", datasource);
-            return;
+        for (var datasource : datasources) {
+            var ds = feature.find(datasource);
+            if (ds != null) {
+                ctx.output("`b`%s`:`%n", "-".repeat(30));
+                feature.print(ds, showPassword);
+            } else
+                ctx.error("The DataSource `r`%s`:` do not exists!%n", datasource);
         }
-        ctx.output("`b`name     :`:` %s%n", ds.name());
-        ctx.output("`b`driver   :`:` %s%n", ds.driver());
-        ctx.output("`b`host     :`:` %s%n", ds.host());
-        ctx.output("`b`port     :`:` %s%n", ds.port());
-        ctx.output("`b`database :`:` %s%n", ds.database());
-        ctx.output("`b`user     :`:` %s%n", ds.user());
-        ctx.output("`b`password :`:` %s%n", showPassword ? ds.password() : "*".repeat(ds.password().length()));
     }
 }

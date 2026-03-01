@@ -15,6 +15,9 @@ public class Utils {
     }
 
     public static Candidate candidate(String name, String display, String description) {
+        display = name.equals(display)
+                ? name
+                : name + " " + display;
         return new Candidate(name, display, null, description, null, null, true);
     }
 

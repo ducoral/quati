@@ -56,7 +56,7 @@ public class DataSourceCreate implements Action {
             var dsPort = port == null
                     ? driverFeature.info(driver).defaultPort()
                     : port;
-            datasource.create(new DataSource(name, driver, host, dsPort, database, user, password));
+            datasource.write(new DataSource(name, driver, host, dsPort, database, user, password));
             ctx.output("DataSource `b`%s`:` created `g`successfully!`:`", name);
         } else
             ctx.output("The driver `r`%s`:` is not installed!%n", driver);

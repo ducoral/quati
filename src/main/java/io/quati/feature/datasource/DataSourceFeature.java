@@ -17,6 +17,8 @@ import java.util.Map;
         commands = {
                 DataSourceList.class,
                 DataSourceCreate.class,
+                DataSourceCopy.class,
+                DataSourceEdit.class,
                 DataSourceTest.class,
                 DataSourceInfo.class,
                 DataSourceRemove.class
@@ -70,8 +72,9 @@ public class DataSourceFeature extends AbstractFeature {
                 .toList();
     }
 
-    public void create(DataSource ds) {
+    public DataSource write(DataSource ds) {
         context.writeTextFile(ds.name, Json.toStr(ds.toMap()));
+        return ds;
     }
 
     public DataSource find(String name) {
@@ -80,8 +83,25 @@ public class DataSourceFeature extends AbstractFeature {
         return DataSource.fromJson(context.readTextFile(name));
     }
 
+    public DataSource copy(String source, String destination) {
+        var ds = find(source);
+        if (ds == null)
+            return null;
+        return write(new DataSource(destination, ds.driver, ds.host, ds.port, ds.database, ds.user, ds.password));
+    }
+
     public void remove(String name) {
         context.deleteFile(name);
+    }
+
+    public void print(DataSource ds, boolean showPassword) {
+        context.output("`b`name     :`:` %s%n", ds.name());
+        context.output("`b`driver   :`:` %s%n", ds.driver());
+        context.output("`b`host     :`:` %s%n", ds.host());
+        context.output("`b`port     :`:` %s%n", ds.port());
+        context.output("`b`database :`:` %s%n", ds.database());
+        context.output("`b`user     :`:` %s%n", ds.user());
+        context.output("`b`password :`:` %s%n", showPassword ? ds.password() : "*".repeat(ds.password().length()));
     }
 
     public Connection connect(String name) throws SQLException {

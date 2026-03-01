@@ -27,13 +27,17 @@ public class Quati {
         home = Path.of(System.getenv("HOME"), ".quati");
     }
 
+    public Path home() {
+        return home;
+    }
+
     public void execute(String[] args) {
-        new ReadEvalPrintLoop(this)
-                .doREPL(args);
-        new Completion(this)
-                .complete(args);
-        new Execution(this)
-                .execute(args);
+        if (args.length == 0)
+            new ReadEvalPrintLoop(this).readLine(args);
+        else if (args[0].equals("quati"))
+            new Completion(this).complete(args);
+        else
+            new Execution(this).execute(args);
     }
 
     public Path repository() {

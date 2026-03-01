@@ -105,7 +105,7 @@ public class DriverFeature extends AbstractFeature {
                         .build();
                 var response = client.send(request, BodyHandlers.ofFile(context.file(driver + ".jar")));
                 if (response.statusCode() == 200)
-                    context.output("The `gg`%s`:` driver was installed successfully!%n", driver);
+                    context.output("The driver `gg`%s`:` was installed successfully!%n", driver);
                 else
                     context.error("`r`Failed – HTTP %s!`:`%n", response.statusCode());
             } catch (Exception e) {
@@ -114,9 +114,10 @@ public class DriverFeature extends AbstractFeature {
     }
 
     public void remove(String driver) {
-        if (installed().contains(driver))
+        if (installed().contains(driver)) {
             context.deleteFile(driver + ".jar");
-        else
+            context.output("The driver `gg`%s`:` was successfully removed!%n", driver);
+        } else
             context.error("`r`The driver '%s' is not installed!`:`%n", driver);
     }
 
