@@ -2,9 +2,26 @@ package io.quati.util;
 
 import org.jline.reader.Candidate;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 public class Utils {
+
+    public static <T> List<Map<?, ?>> toListOfMap(List<T> fromList, Function<T, Map<?,?>> mapper) {
+        var toList = new ArrayList<Map<?, ?>>();
+        fromList.forEach(item -> toList.add(mapper.apply(item)));
+        return toList;
+    }
+
+    public static <T> List<T> getAsListOf(Map<?, ?> map, String key, Function<Map<?, ?>, T> mapper) {
+        return ((List<?>) map.get(key))
+                .stream()
+                .map(column -> mapper.apply((Map<?, ?>) column))
+                .toList();
+    }
 
     public static Candidate candidate(String name) {
         return candidate(name, name, null);
@@ -19,6 +36,16 @@ public class Utils {
                 ? name
                 : name + " " + display;
         return new Candidate(name, display, null, description, null, null, true);
+    }
+
+    public static void completeArg(List<String> reference, String value, List<String> arguments, List<Candidate> candidates) {
+        if (reference.contains(value))
+            return;
+        reference
+                .stream()
+                .filter(name -> arguments == null || !arguments.contains(name))
+                .map(Utils::candidate)
+                .forEach(candidates::add);
     }
 
     public static String[] splitNames(String names) {

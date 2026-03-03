@@ -14,29 +14,26 @@ import static io.quati.api.Arity.TWO;
 @Command(name = "copy", description = "copy a data source to a new one")
 public class DataSourceCopy implements Action {
 
-    @Argument(label = "SOURCE DESTINATION", desc = "data sources name of origin and destination", arity = TWO)
+    @Argument(label = "SOURCE DESTINATION", description = "data sources name of origin and destination", arity = TWO)
     List<String> sourceDestination;
 
     @Override
     public void completeArg(Context ctx, int argPos, String value, List<Candidate> candidates) {
-        var names = ctx.quati().feature(DataSourceFeature.class).names();
-        if (argPos == 1 && !names.contains(value))
-            names.stream()
-                    .map(Utils::candidate)
-                    .forEach(candidates::add);
+        if (argPos == 1)
+            Utils.completeArg(ctx.datasource().names(), value, null, candidates);
     }
 
     @Override
     public void execute(Context ctx) {
-        var feature = ctx.quati().feature(DataSourceFeature.class);
+        var feature = ctx.datasource();
         var source = sourceDestination.getFirst();
         if (!feature.names().contains(source)) {
-            ctx.error("The DataSource `r`%s`:` do not exists!%n", source);
+            feature.errorNotExists(source);
             return;
         }
         var destination = sourceDestination.getLast();
         var ds = feature.copy(source, destination);
-        ctx.output("DataSource `b`%s`:` copied to `b`%s`:` `g`successfully!`:`%n", source, destination);
+        ctx.outputSuccessfully("Datasuource", source, "copied to `bb`%s`:`".formatted(destination));
         feature.print(ds, false);
     }
 }

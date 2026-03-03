@@ -1,13 +1,13 @@
 package io.quati.core;
 
 import io.quati.util.Scan;
+import io.quati.util.Utils;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.impl.history.DefaultHistory;
 import org.jline.terminal.TerminalBuilder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public record ReadEvalPrintLoop(Quati quati) {
 
@@ -38,11 +38,11 @@ public record ReadEvalPrintLoop(Quati quati) {
                         break;
                     quati.execute(parseLine(line));
                 } catch (Exception e) {
-                    quati.error("`r`%s`:`%n", e.getMessage());
+                    quati.error(e);
                 }
             System.exit(0);
         } catch (Exception e) {
-            quati.error("`r`%s`:`%n", e.getMessage());
+            quati.error(e);
         }
     }
 

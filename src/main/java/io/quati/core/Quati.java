@@ -95,6 +95,15 @@ public class Quati {
         System.err.print(filter(format, args));
     }
 
+    public void error(Exception e) {
+        error("`r`%s`:`%n", e.getMessage());
+        var cause = e.getCause();
+        while (cause != null) {
+            error(" `r`-> `y`%s`:`%n", cause.getMessage());
+            cause = cause.getCause();
+        }
+    }
+
     public void printNameAndVersion() {
         String version = "unknown";
         try (var input = Quati.class

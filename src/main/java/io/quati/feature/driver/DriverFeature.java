@@ -61,7 +61,7 @@ public class DriverFeature extends AbstractFeature {
                     "jdbc:postgresql://{host}:{port}/{database}"),
             "oracle", new DriverInfo(
                     "com/oracle/database/jdbc",
-                    "ojdbc8",
+                    "ojdbc11",
                     "23.26.1.0.0",
                     "1521",
                     "oracle.jdbc.OracleDriver",
@@ -76,10 +76,10 @@ public class DriverFeature extends AbstractFeature {
             "mssqlserver", new DriverInfo(
                     "com/microsoft/sqlserver",
                     "mssql-jdbc",
-                    "13.3.1.jre11-preview",
+                    "13.2.1.jre11",
                     "1433",
                     "com.microsoft.sqlserver.jdbc.SQLServerDriver",
-                    "jdbc:sqlserver://{host}:{port};databaseName={database}"));
+                    "jdbc:sqlserver://{host}:{port};databaseName={database};trustServerCertificate=true"));
 
     public DriverInfo info(String driver) {
         return driverMap.get(driver);
@@ -105,7 +105,7 @@ public class DriverFeature extends AbstractFeature {
                         .build();
                 var response = client.send(request, BodyHandlers.ofFile(context.file(driver + ".jar")));
                 if (response.statusCode() == 200)
-                    context.output("The driver `gg`%s`:` was installed successfully!%n", driver);
+                    context.outputSuccessfully("Driver", driver, "installed");
                 else
                     context.error("`r`Failed – HTTP %s!`:`%n", response.statusCode());
             } catch (Exception e) {
@@ -116,9 +116,13 @@ public class DriverFeature extends AbstractFeature {
     public void remove(String driver) {
         if (installed().contains(driver)) {
             context.deleteFile(driver + ".jar");
-            context.output("The driver `gg`%s`:` was successfully removed!%n", driver);
+            context.outputSuccessfully("Driver", driver, "successfully");
         } else
-            context.error("`r`The driver '%s' is not installed!`:`%n", driver);
+            errorNotInstaled(driver);
+    }
+
+    public void errorNotInstaled(String driver) {
+        context.output("Driver `r`%s`:` is not installed!%n", driver);
     }
 
     public DriverFeature load(String driver) {
@@ -127,7 +131,7 @@ public class DriverFeature extends AbstractFeature {
                     .repository()
                     .resolve(driver + ".jar");
             if (Files.notExists(path))
-                context.output("The `r`%s`:` driver is not installed!%n", driver);
+                errorNotInstaled(driver);
             var classLoader = DriverFeature.class.getClassLoader();
             var loader = new URLClassLoader(new URL[]{path.toUri().toURL()}, classLoader);
             var info = info(driver);
@@ -137,7 +141,6 @@ public class DriverFeature extends AbstractFeature {
             var object = clazz.getDeclaredConstructor().newInstance();
             DriverManager.registerDriver(new DriverShim((Driver) object));
         } catch (Exception e) {
-            context.error("`r`Error: %s`:`%n", e.getMessage());
             throw new RuntimeException(e);
         }
         return this;

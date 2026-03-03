@@ -31,6 +31,7 @@ public class DataSourceFeature extends AbstractFeature {
             String host,
             String port,
             String database,
+            String schema,
             String user,
             String password) {
 
@@ -41,6 +42,7 @@ public class DataSourceFeature extends AbstractFeature {
                     "host", host,
                     "port", port,
                     "database", database,
+                    "schema", schema,
                     "user", user,
                     "password", password);
         }
@@ -52,6 +54,7 @@ public class DataSourceFeature extends AbstractFeature {
                     map.get("host"),
                     map.get("port"),
                     map.get("database"),
+                    map.get("schema"),
                     map.get("user"),
                     map.get("password"));
         }
@@ -87,7 +90,7 @@ public class DataSourceFeature extends AbstractFeature {
         var ds = find(source);
         if (ds == null)
             return null;
-        return write(new DataSource(destination, ds.driver, ds.host, ds.port, ds.database, ds.user, ds.password));
+        return write(new DataSource(destination, ds.driver, ds.host, ds.port, ds.database, ds.schema, ds.user, ds.password));
     }
 
     public void remove(String name) {
@@ -100,14 +103,19 @@ public class DataSourceFeature extends AbstractFeature {
         context.output("`b`host     :`:` %s%n", ds.host());
         context.output("`b`port     :`:` %s%n", ds.port());
         context.output("`b`database :`:` %s%n", ds.database());
+        context.output("`b`schema   :`:` %s%n", ds.schema());
         context.output("`b`user     :`:` %s%n", ds.user());
         context.output("`b`password :`:` %s%n", showPassword ? ds.password() : "*".repeat(ds.password().length()));
+    }
+
+    public void errorNotExists(String name) {
+        context.error("The datasource `r`%s`:` do not exists!%n", name);
     }
 
     public Connection connect(String name) throws SQLException {
         var dataSource = find(name);
         if (dataSource == null)
-            throw new InternalError("The DataSource %s do not exists.".formatted(name));
+            throw new InternalError("The datasource %s do not exists.".formatted(name));
         var driver = context
                 .quati()
                 .feature(DriverFeature.class)

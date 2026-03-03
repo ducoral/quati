@@ -13,7 +13,7 @@ import java.util.List;
 @Command(name = "load", description = "load JDBC driver to JVM")
 public class DriverLoad implements Action {
 
-    @Argument(label = "DRIVER", desc = "driver to be loaded")
+    @Argument(label = "DRIVER", description = "driver to be loaded")
     List<String> drivers;
 
     @Override

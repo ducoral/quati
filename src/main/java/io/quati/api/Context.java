@@ -1,6 +1,9 @@
 package io.quati.api;
 
 import io.quati.core.Quati;
+import io.quati.feature.datasource.DataSourceFeature;
+import io.quati.feature.driver.DriverFeature;
+import io.quati.feature.schema.SchemaFeature;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +20,8 @@ public interface Context {
     void output(String format, Object... args);
 
     void error(String format, Object... args);
+
+    void error(Exception e);
 
     Path repository();
 
@@ -78,5 +83,21 @@ public interface Context {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    default void outputSuccessfully(String targetLabel, String target, String event) {
+        quati().output("%s `bb`%s`:` %s `gg`successfully!`:`%n", targetLabel, target, event);
+    }
+
+    default DriverFeature driver() {
+        return quati().feature(DriverFeature.class);
+    }
+
+    default DataSourceFeature datasource() {
+        return quati().feature(DataSourceFeature.class);
+    }
+
+    default SchemaFeature schema() {
+        return quati().feature(SchemaFeature.class);
     }
 }

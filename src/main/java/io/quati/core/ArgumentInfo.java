@@ -8,7 +8,7 @@ import java.lang.reflect.Field;
 public record ArgumentInfo(String label, String desc, Arity arity, Field field) {
     public static ArgumentInfo of(Field field) {
         var arg = field.getAnnotation(Argument.class);
-        return new ArgumentInfo(arg.label(), arg.desc(), Arity.of(arg.arity()), field);
+        return new ArgumentInfo(arg.label(), arg.description(), Arity.of(arg.arity()), field);
     }
 
     public boolean hasPosition(int position) {

@@ -19,6 +19,11 @@ record QuatiContext(Quati quati, FeatureInfo featureInfo) implements Context {
     }
 
     @Override
+    public void error(Exception e) {
+        quati.error(e);
+    }
+
+    @Override
     public Path repository() {
         var repo = quati
                 .repository()

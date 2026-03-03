@@ -5,7 +5,6 @@ import io.quati.api.Argument;
 import io.quati.api.Command;
 import io.quati.api.Context;
 import io.quati.api.Option;
-import io.quati.feature.driver.DriverFeature;
 import io.quati.util.Utils;
 import org.jline.reader.Candidate;
 
@@ -18,7 +17,7 @@ import static io.quati.feature.datasource.DataSourceFeature.DataSource;
 @Command(name = "edit", description = "edit datasource")
 public class DataSourceEdit implements Action {
 
-    @Argument(label = "NAME", desc = "name of the datasource to be edited", arity = ONE)
+    @Argument(label = "NAME", description = "name of the datasource to be edited", arity = ONE)
     String name;
 
     @Option(name = "-d|--driver", desc = "set the JDBC driver", label = "DRIVER", arity = ZERO_OR_ONE)
@@ -33,6 +32,9 @@ public class DataSourceEdit implements Action {
     @Option(name = "-D|--database", label = "DATABASE", desc = "set database name", arity = ZERO_OR_ONE)
     String database;
 
+    @Option(name = "-s|--schema", label = "SCHEMA", desc = "set database schema", arity = ZERO_OR_ONE)
+    String schema;
+
     @Option(name = "-u|--user", label = "USER", desc = "set database user name", arity = ZERO_OR_ONE)
     String user;
 
@@ -41,37 +43,36 @@ public class DataSourceEdit implements Action {
 
     @Override
     public void completeArg(Context ctx, int argPos, String value, List<Candidate> candidates) {
-        var names = ctx.quati().feature(DataSourceFeature.class).names();
-        if (!names.contains(value))
-            names.stream()
-                    .map(Utils::candidate)
-                    .forEach(candidates::add);
+        Utils.completeArg(ctx.datasource().names(), value, null, candidates);
     }
 
     @Override
     public void completeOpt(Context ctx, String opt, String value, List<Candidate> candidates) {
-        var installed = ctx.quati().feature(DriverFeature.class).installed();
-        if (opt.equals("-d") && !installed.contains(value))
-            installed.stream()
-                    .map(Utils::candidate)
-                    .forEach(candidates::add);
+        if (opt.equals("-d"))
+            Utils.completeArg(ctx.driver().installed(), value, null, candidates);
     }
 
     @Override
     public void execute(Context ctx) {
-        var feature = ctx.quati().feature(DataSourceFeature.class);
+        var feature = ctx.datasource();
         var ds = feature.find(name);
         if (ds == null) {
-            ctx.error("The DataSource `r`%s`:` do not exists!%n", feature);
+            feature.errorNotExists(name);
             return;
         }
-        if (driver == null && host == null && port == null && database == null && user == null && password == null) {
+        if (driver == null
+                && host == null
+                && port == null
+                && database == null
+                && schema == null
+                && user == null
+                && password == null) {
             ctx.error("`yy`Please provide an attribute to be edited`:`%n");
             return;
         }
-        var driverFeature = ctx.quati().feature(DriverFeature.class);
+        var driverFeature = ctx.driver();
         if (driver != null && !driverFeature.installed().contains(driver)) {
-            ctx.output("The driver `r`%s`:` is not installed!%n", driver);
+            driverFeature.errorNotInstaled(driver);
             return;
         }
         var edited = new DataSource(name,
@@ -79,10 +80,11 @@ public class DataSourceEdit implements Action {
                 host == null ? ds.host() : host,
                 port == null ? ds.port() : port,
                 database == null ? ds.database() : database,
+                schema == null ? ds.schema() : schema,
                 user == null ? ds.user() : user,
                 password == null ? ds.password() : password);
         feature.write(edited);
-        ctx.output("DataSource `b`%s`:` edited `g`successfully!`:`%n", name);
+        ctx.outputSuccessfully("Datasource", name, "edited");
         feature.print(edited, false);
     }
 }

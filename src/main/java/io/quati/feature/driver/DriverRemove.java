@@ -13,7 +13,7 @@ import java.util.List;
 @Command(name = "remove", description = "remove JDBC driver")
 public class DriverRemove implements Action {
 
-    @Argument(label = "DRIVER", desc = "name of driver to be removed")
+    @Argument(label = "DRIVER", description = "name of driver to be removed")
     List<String> drivers;
 
     @Override
