@@ -8,7 +8,7 @@ import io.quati.util.Utils;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,16 +16,19 @@ import java.util.Map;
         name = "schema",
         description = "datasource database schema",
         commands = {
-                SchemaUpdate.class
+                SchemaUpdate.class,
+                SchemaDesc.class,
+                SchemaData.class,
+                SchemaCount.class
         })
 public class SchemaFeature extends AbstractFeature {
 
-    public record Relation(String leftSideColumn, String rightSideTable, String rightSideColumn) {
+    public record Relation(String lsColumn, String rsTable, String rsColumn) {
         public Map<?, ?> toMap() {
             return Map.of(
-                    "l", leftSideColumn,
-                    "t", rightSideTable,
-                    "r", rightSideColumn);
+                    "l", lsColumn,
+                    "t", rsTable,
+                    "r", rsColumn);
         }
 
         public static Relation fromMap(Map<?, ?> map) {
@@ -96,17 +99,31 @@ public class SchemaFeature extends AbstractFeature {
                     Utils.getAsListOf(map, "e", Relation::fromMap),
                     Utils.getAsListOf(map, "i", Relation::fromMap));
         }
+
+        public boolean isExported(String column) {
+            for (var exp : exported)
+                if (exp.lsColumn.equalsIgnoreCase(column))
+                    return true;
+            return false;
+        }
+
+        public boolean isImported(String column) {
+            for (var imp : imported)
+                if (imp.lsColumn.equalsIgnoreCase(column))
+                    return true;
+            return false;
+        }
     }
 
     public record Schema(Map<String, Table> tables) {
         public Map<?, ?> toMap() {
-            var map = new HashMap<>();
+            var map = new LinkedHashMap<>();
             tables.forEach((name, table) -> map.put(name, table.toMap()));
             return Map.of("tables", map);
         }
 
         public static Schema fromMap(Map<?, ?> map) {
-            var tables = new HashMap<String, Table>();
+            var tables = new LinkedHashMap<String, Table>();
             ((Map<?, ?>) map.get("tables"))
                     .forEach((name, table)
                             -> tables.put((String) name, Table.fromMap((Map<?, ?>) table)));
@@ -120,38 +137,51 @@ public class SchemaFeature extends AbstractFeature {
     }
 
     public void update(String name) {
-        var datasource = context.datasource().find(name);
-        if (datasource == null)
-            context.datasource().errorNotExists(name);
-        else try (var conn = context.datasource().connect(name)) {
-            var schema = new Schema(new HashMap<>());
-            var metaData = conn.getMetaData();
-            var tables = metaData.getTables(null, datasource.schema(), null, new String[]{"TABLE"});
-            while (tables.next()) {
-                var table = new Table(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-                var tableName = tables.getString("TABLE_NAME");
-                context.output("%s ", tableName);
-                var columns = metaData.getColumns(null, datasource.schema(), tableName, null);
-                while (columns.next()) {
+        var ds = context.datasource().find(name);
+        if (ds == null)
+            context.errorNotExists("datasource", name);
+        else try (var connection = context.datasource().connect(name)) {
+            var schema = new Schema(new LinkedHashMap<>());
+            var tableNames = new ArrayList<String>();
+            context.output("getting tables ");
+            context.startTarget(name);
+            var md = connection.getMetaData();
+            try (var rs = md.getTables(null, ds.schema(), null, new String[]{"TABLE"})) {
+                while (rs.next()) {
                     context.output("`y`.`:`");
-                    table.columns.add(Column.fromResultSet(columns));
+                    tableNames.add(rs.getString("TABLE_NAME"));
                 }
-                var exported = metaData.getExportedKeys(null, datasource.schema(), tableName);
-                while (exported.next()) {
-                    context.output("`c`.`:`");
-                    table.exported.add(Relation.fromExportedKeys(exported));
-                }
-                var imported = metaData.getImportedKeys(null, datasource.schema(), tableName);
-                while (imported.next()) {
-                    context.output("`b`.`:`");
-                    table.imported.add(Relation.fromImportedKeys(imported));
-                }
+                context.lineBreak();
+            }
+
+            context.output("getting schema%n");
+            for (var tableName : tableNames) {
+                context.output("%s ", tableName);
+                var table = new Table(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
                 schema.tables.put(tableName, table);
-                context.output("%n");
+                try (var rs = md.getColumns(null, ds.schema(), tableName, null)) {
+                    while (rs.next()) {
+                        context.output("`y`.`:`");
+                        table.columns.add(Column.fromResultSet(rs));
+                    }
+                }
+                try (var rs = md.getExportedKeys(null, ds.schema(), tableName)) {
+                    while (rs.next()) {
+                        context.output("`c`.`:`");
+                        table.exported.add(Relation.fromExportedKeys(rs));
+                    }
+                }
+                try (var rs = md.getImportedKeys(null, ds.schema(), tableName)) {
+                    while (rs.next()) {
+                        context.output("`b`.`:`");
+                        table.imported.add(Relation.fromImportedKeys(rs));
+                    }
+                }
+                context.lineBreak();
             }
 
             context.schema().write(name, schema);
-            context.outputSuccessfully("Schema", name, "updated");
+            context.endTargetSuccessfully("Schema", name, "updated");
         } catch (SQLException e) {
             context.error(e);
         }

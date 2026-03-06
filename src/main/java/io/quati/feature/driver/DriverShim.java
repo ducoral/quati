@@ -22,7 +22,7 @@ public class DriverShim implements Driver {
             Thread.currentThread().setContextClassLoader(driverClassLoader);
             return action.call();
         } catch (Exception e) {
-            throw new SQLException("Error in delegated driver call", e);
+            throw new SQLException("error in delegated driver call (%s)".formatted(delegate.getClass().getName()), e);
         } finally {
              Thread.currentThread().setContextClassLoader(original);
         }

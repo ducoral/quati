@@ -20,20 +20,21 @@ public class DataSourceCopy implements Action {
     @Override
     public void completeArg(Context ctx, int argPos, String value, List<Candidate> candidates) {
         if (argPos == 1)
-            Utils.completeArg(ctx.datasource().names(), value, null, candidates);
+            Utils.completeCandidates(ctx.datasource().names(), value, null, candidates, true);
     }
 
     @Override
     public void execute(Context ctx) {
         var feature = ctx.datasource();
         var source = sourceDestination.getFirst();
+        ctx.startTarget(source);
         if (!feature.names().contains(source)) {
-            feature.errorNotExists(source);
+            ctx.errorNotExists("datasource", source);
             return;
         }
         var destination = sourceDestination.getLast();
         var ds = feature.copy(source, destination);
-        ctx.outputSuccessfully("Datasuource", source, "copied to `bb`%s`:`".formatted(destination));
+        ctx.endTargetSuccessfully("datasource", source, "copied to `bb`%s`:`".formatted(destination));
         feature.print(ds, false);
     }
 }

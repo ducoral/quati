@@ -17,7 +17,7 @@ public class SchemaUpdate implements Action {
 
     @Override
     public void completeArg(Context ctx, int argPos, String value, List<Candidate> candidates) {
-        Utils.completeArg(ctx.datasource().names(), value, datasources, candidates);
+        Utils.completeCandidates(ctx.datasource().names(), value, datasources, candidates, false);
     }
 
     @Override
@@ -28,6 +28,6 @@ public class SchemaUpdate implements Action {
             if (names.contains(datasource)) {
                 feature.update(datasource);
             } else
-                ctx.datasource().errorNotExists(datasource);
+                ctx.errorNotExists("datasource", datasource);
     }
 }

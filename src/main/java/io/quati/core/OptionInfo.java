@@ -21,7 +21,7 @@ public record OptionInfo(
         var names = Utils.splitNames(opt.name());
         var longOptions = Set.of(Utils.tail(names));
         var arity = Arity.of(opt.arity());
-        return new OptionInfo(names[0], longOptions, opt.label(), opt.desc(), arity, field);
+        return new OptionInfo(names[0], longOptions, opt.label(), opt.description(), arity, field);
     }
 
     public void put(Map<String, OptionInfo> map) {

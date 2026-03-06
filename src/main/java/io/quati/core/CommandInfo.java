@@ -24,7 +24,7 @@ public record CommandInfo(
 
     public static CommandInfo of(Class<? extends Action> commandClass) {
         if (!commandClass.isAnnotationPresent(Command.class))
-            throw new RuntimeException("The @Command annotation is missing from " + commandClass);
+            throw new RuntimeException("the @Command annotation is missing from " + commandClass);
 
         try {
             var command = commandClass.getAnnotation(Command.class);
@@ -152,7 +152,7 @@ public record CommandInfo(
                 var arity = arg.arity();
                 var value = arg.field().get(action);
                 if (!arity.validate(value)) {
-                    quati.error("The argument '%s' is invalid!%n", arg.label());
+                    quati.error("the argument '%s' is invalid!%n", arg.label());
                     return false;
                 }
             }
@@ -161,7 +161,7 @@ public record CommandInfo(
                     var arity = optInfo.arity();
                     var value = optInfo.field().get(action);
                     if (!arity.validate(value)) {
-                        quati.error("The option '%s' (%s) is required!%n",
+                        quati.error("the option '%s' (%s) is required!%n",
                                 optInfo.option(),
                                 String.join(", ", optInfo.longOptions()));
                         return false;

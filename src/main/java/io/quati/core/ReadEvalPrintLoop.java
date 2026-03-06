@@ -1,7 +1,6 @@
 package io.quati.core;
 
 import io.quati.util.Scan;
-import io.quati.util.Utils;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.impl.history.DefaultHistory;
@@ -18,6 +17,7 @@ public record ReadEvalPrintLoop(Quati quati) {
         try (var terminal = TerminalBuilder.builder()
                 .system(true)
                 .build()) {
+            TerminalContext.set(terminal);
             var reader = LineReaderBuilder.builder()
                     .terminal(terminal)
                     .completer(new Completion(quati))
@@ -36,7 +36,8 @@ public record ReadEvalPrintLoop(Quati quati) {
                         continue;
                     if (isExist(line))
                         break;
-                    quati.execute(parseLine(line));
+                    new Execution(quati)
+                            .execute(parseLine(line));
                 } catch (Exception e) {
                     quati.error(e);
                 }

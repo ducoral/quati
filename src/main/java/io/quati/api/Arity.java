@@ -43,7 +43,7 @@ public interface Arity {
                 .compile("^(\\d+)(\\.\\.(\\d+|\\*))?$")
                 .matcher(arity);
         if (!match.find())
-            throw new RuntimeException("Invalid arity format: " + arity);
+            throw new RuntimeException("invalid arity format: " + arity);
         var min = Integer.parseInt(match.group(1));
         var max = match.group(2) == null
                 ? min

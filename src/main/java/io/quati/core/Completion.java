@@ -44,7 +44,7 @@ public record Completion(Quati quati) implements Completer {
             candidates.addAll(feature.candidates());
         else if (feature.exists(args[0]))
             completeParameter(
-                    new QuatiContext(quati, feature),
+                    quati.contextOf(feature),
                     feature.commandInfo(args[0]),
                     1,
                     Utils.tail(args),

@@ -64,7 +64,7 @@ public class Json {
                 || json == null)
             return String.valueOf(json);
         else
-            throw new RuntimeException("Invalid Json type: " + json);
+            throw new RuntimeException("invalid Json type: " + json);
     }
 
     public static Object parse(String json) {
@@ -88,7 +88,7 @@ public class Json {
         if (scan.isOneOf('t', 'f', 'n'))
             return parseLiteral(scan);
 
-        throw new RuntimeException("Character invalid: " + scan.current());
+        throw new RuntimeException("character invalid: " + scan.current());
     }
 
     private static Object parseObject(Scan scan) {
@@ -152,6 +152,6 @@ public class Json {
             scan.accept("null");
             return null;
         }
-        throw new RuntimeException("Character invalid: " + scan.current());
+        throw new RuntimeException("character invalid: " + scan.current());
     }
 }

@@ -4,16 +4,22 @@ import io.quati.core.Quati;
 import io.quati.feature.datasource.DataSourceFeature;
 import io.quati.feature.driver.DriverFeature;
 import io.quati.feature.schema.SchemaFeature;
+import io.quati.util.Utils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface Context {
+
+    Map<String, Instant> TARGETS = new HashMap<>();
 
     Quati quati();
 
@@ -23,7 +29,19 @@ public interface Context {
 
     void error(Exception e);
 
+    default void errorNotExists(String label, String name) {
+        error("%s `r`%s`:` do not exists!%n", label, name);
+    }
+
+    default void lineBreak() {
+        output("%n");
+    }
+
     Path repository();
+
+    int width();
+
+    int height();
 
     default Path file(String name) {
         return repository().resolve(name);
@@ -85,8 +103,16 @@ public interface Context {
         }
     }
 
-    default void outputSuccessfully(String targetLabel, String target, String event) {
-        quati().output("%s `bb`%s`:` %s `gg`successfully!`:`%n", targetLabel, target, event);
+    default void startTarget(String target) {
+        TARGETS.put(target, Instant.now());
+    }
+
+    default void endTargetSuccessfully(String label, String target, String event) {
+        var start = TARGETS.get(target);
+        var duration = start != null
+                ? " `bb`%s`:`".formatted(Utils.readableDuration(start, Instant.now()))
+                : "";
+        quati().output("%s `bb`%s`:` %s `gg`successfully!`:`%s%n", label, target, event, duration);
     }
 
     default DriverFeature driver() {

@@ -24,7 +24,7 @@ public class DriverList implements Action {
                 var status = installedList.contains(driver)
                         ? INSTALLED
                         : AVAILABLE;
-                ctx.output("%s%s%n", Utils.justifyLeft(driver, 25), status);
+                ctx.output("%s%s%n", Utils.leftJust(driver, 25), status);
             }
     }
 }

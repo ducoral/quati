@@ -3,6 +3,7 @@ package io.quati.feature.datasource;
 import io.quati.api.Feature;
 import io.quati.core.AbstractFeature;
 import io.quati.feature.driver.DriverFeature;
+import io.quati.feature.driver.DriverVendor;
 import io.quati.util.Json;
 
 import java.sql.Connection;
@@ -97,6 +98,15 @@ public class DataSourceFeature extends AbstractFeature {
         context.deleteFile(name);
     }
 
+    public DriverVendor vendor(String datasource) {
+        var ds = find(datasource);
+        if (ds == null)
+            return null;
+        return context
+                .driver()
+                .vendor(ds.driver);
+    }
+
     public void print(DataSource ds, boolean showPassword) {
         context.output("`b`name     :`:` %s%n", ds.name());
         context.output("`b`driver   :`:` %s%n", ds.driver());
@@ -108,19 +118,15 @@ public class DataSourceFeature extends AbstractFeature {
         context.output("`b`password :`:` %s%n", showPassword ? ds.password() : "*".repeat(ds.password().length()));
     }
 
-    public void errorNotExists(String name) {
-        context.error("The datasource `r`%s`:` do not exists!%n", name);
-    }
-
     public Connection connect(String name) throws SQLException {
         var dataSource = find(name);
         if (dataSource == null)
-            throw new InternalError("The datasource %s do not exists.".formatted(name));
+            throw new InternalError("the datasource %s do not exists.".formatted(name));
         var driver = context
                 .quati()
                 .feature(DriverFeature.class)
                 .load(dataSource.driver)
-                .info(dataSource.driver);
+                .vendor(dataSource.driver);
         return DriverManager.getConnection(
                 driver.jdbcURL(dataSource.host, dataSource.port, dataSource.database),
                 dataSource.user,

@@ -1,10 +1,13 @@
 package io.quati.core;
 
+import io.quati.api.Context;
 import io.quati.util.Utils;
 import org.jline.reader.Candidate;
+import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +40,15 @@ public class Quati {
         else if (args[0].equals("quati"))
             new Completion(this).complete(args);
         else
-            new Execution(this).execute(args);
+            try (var terminal = TerminalBuilder.builder()
+                    .system(true)
+                    .build()) {
+                TerminalContext.set(terminal);
+                output("debug: %s%n", Arrays.toString(args));
+                new Execution(this).execute(args);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
     }
 
     public Path repository() {
@@ -68,7 +79,7 @@ public class Quati {
     public <T extends AbstractFeature> T feature(Class<T> featureClass) {
         try {
             var feature = featureClass.getConstructor().newInstance();
-            feature.context = new QuatiContext(this, FeatureInfo.of(featureClass));
+            feature.context = contextOf(FeatureInfo.of(featureClass));
             return feature;
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -79,12 +90,16 @@ public class Quati {
         return featuresMap.get(name);
     }
 
+    public Context contextOf(FeatureInfo feature) {
+        return new QuatiContext(this, feature);
+    }
+
     public void printUsage() {
         printUsage("FEATURE");
     }
 
     public void printUsage(String feature) {
-        System.err.printf("Usage: quati %s COMMAND [options]%n", feature);
+        System.err.printf("usage: quati %s COMMAND [options]%n", feature);
     }
 
     public void output(String format, Object... args) {

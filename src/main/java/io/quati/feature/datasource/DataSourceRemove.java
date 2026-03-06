@@ -17,18 +17,19 @@ public class DataSourceRemove implements Action {
 
     @Override
     public void completeArg(Context ctx, int argPos, String value, List<Candidate> candidates) {
-        Utils.completeArg(ctx.datasource().names(), value, datasources, candidates);
+        Utils.completeCandidates(ctx.datasource().names(), value, datasources, candidates, false);
     }
 
     @Override
     public void execute(Context ctx) {
         var feature = ctx.datasource();
         for (var datasource : datasources) {
+            ctx.startTarget(datasource);
             if (feature.names().contains(datasource)) {
                 feature.remove(datasource);
-                ctx.outputSuccessfully("Datasource", datasource, "removed");
+                ctx.endTargetSuccessfully("datasource", datasource, "removed");
             } else
-                feature.errorNotExists(datasource);
+                ctx.errorNotExists("datasource", datasource);
         }
     }
 }

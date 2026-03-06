@@ -11,7 +11,6 @@ import org.jline.reader.Candidate;
 import java.util.List;
 
 import static io.quati.api.Arity.ONE;
-import static io.quati.api.Arity.ZERO_OR_ONE;
 import static io.quati.feature.datasource.DataSourceFeature.DataSource;
 
 @Command(name = "create", description = "create datasource")
@@ -20,25 +19,25 @@ public class DataSourceCreate implements Action {
     @Argument(label = "NAME", description = "name of the datasource to be created", arity = ONE)
     String name;
 
-    @Option(name = "-d|--driver", desc = "name of the JDBC driver", label = "DRIVER", arity = ONE)
+    @Option(name = "-d|--driver", description = "name of the JDBC driver", label = "DRIVER", arity = ONE)
     String driver;
 
-    @Option(name = "-H|--host", label = "HOST", desc = "database host", arity = ONE)
+    @Option(name = "-H|--host", label = "HOST", description = "database host", arity = ONE)
     String host;
 
-    @Option(name = "-P|--port", label = "PORT", desc = "database port", arity = ZERO_OR_ONE)
+    @Option(name = "-P|--port", label = "PORT", description = "database port")
     String port;
 
-    @Option(name = "-D|--database", label = "DATABASE", desc = "database name", arity = ONE)
+    @Option(name = "-D|--database", label = "DATABASE", description = "database name", arity = ONE)
     String database;
 
-    @Option(name = "-s|--schema", label = "SCHEMA", desc = "database schema", arity = ONE)
+    @Option(name = "-s|--schema", label = "SCHEMA", description = "database schema", arity = ONE)
     String schema;
 
-    @Option(name = "-u|--user", label = "USER", desc = "database user name", arity = ONE)
+    @Option(name = "-u|--user", label = "USER", description = "database user name", arity = ONE)
     String user;
 
-    @Option(name = "-p|--password", label = "PASSWORD", desc = "database user password", arity = ONE)
+    @Option(name = "-p|--password", label = "PASSWORD", description = "database user password", arity = ONE)
     String password;
 
     @Override
@@ -52,14 +51,15 @@ public class DataSourceCreate implements Action {
 
     @Override
     public void execute(Context ctx) {
+        ctx.startTarget(name);
         var driverFeature = ctx.driver();
         if (driverFeature.installed().contains(driver)) {
             var datasource = ctx.datasource();
             var dsPort = port == null
-                    ? driverFeature.info(driver).defaultPort()
+                    ? driverFeature.vendor(driver).port
                     : port;
             datasource.write(new DataSource(name, driver, host, dsPort, database, schema, user, password));
-            ctx.outputSuccessfully("Datasource", name, "created");
+            ctx.endTargetSuccessfully("datasource", name, "created");
         } else
             driverFeature.errorNotInstaled(driver);
     }

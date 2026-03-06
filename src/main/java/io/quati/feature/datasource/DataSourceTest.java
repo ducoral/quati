@@ -18,21 +18,22 @@ public class DataSourceTest implements Action {
 
     @Override
     public void completeArg(Context ctx, int argPos, String value, List<Candidate> candidates) {
-        Utils.completeArg(ctx.datasource().names(), value, datasources, candidates);
+        Utils.completeCandidates(ctx.datasource().names(), value, datasources, candidates, false);
     }
 
     @Override
     public void execute(Context ctx) {
         var feature = ctx.datasource();
         for (var datasource : datasources) {
+            ctx.startTarget(datasource);
             if (feature.names().contains(datasource))
                 try (var conn = feature.connect(datasource)) {
-                    ctx.outputSuccessfully("Datasource", datasource, "connected");
+                    ctx.endTargetSuccessfully("datasource", datasource, "connected");
                 } catch (SQLException e) {
-                    ctx.error(e);
+                    ctx.error(new RuntimeException("datasource %s connection test failed".formatted(datasource), e));
                 }
             else
-                feature.errorNotExists(datasource);
+                ctx.errorNotExists("datasource", datasource);
         }
     }
 }

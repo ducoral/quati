@@ -136,7 +136,7 @@ public class Scan {
     public Scan accept(char ch) {
         if (ch != current())
             throw new RuntimeException(
-                    "The character '%s' was expected, but '%s' was found".formatted(current(), ch));
+                    "the character '%s' was expected, but '%s' was found".formatted(current(), ch));
         next();
         return this;
     }

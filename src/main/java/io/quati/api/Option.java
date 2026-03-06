@@ -10,9 +10,9 @@ import java.lang.annotation.Target;
 public @interface Option {
     String name();
 
-    String desc();
+    String description();
 
     String label() default "VALUE";
 
-    String arity() default Arity.ZERO_OR_MORE;
+    String arity() default Arity.ZERO_OR_ONE;
 }

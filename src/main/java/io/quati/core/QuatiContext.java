@@ -35,4 +35,14 @@ record QuatiContext(Quati quati, FeatureInfo featureInfo) implements Context {
         }
         return repo;
     }
+
+    @Override
+    public int width() {
+        return TerminalContext.get().getWidth();
+    }
+
+    @Override
+    public int height() {
+        return TerminalContext.get().getHeight();
+    }
 }

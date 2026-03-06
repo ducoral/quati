@@ -12,7 +12,7 @@ public record FeatureInfo(String name, String desc, Class<? extends Action>[] co
 
     public static FeatureInfo of(Class<?> featureClass) {
         if (!featureClass.isAnnotationPresent(Feature.class))
-            throw new RuntimeException("The @Feature annotation is missing from " + featureClass);
+            throw new RuntimeException("the @Feature annotation is missing from " + featureClass);
         var feature = featureClass.getAnnotation(Feature.class);
         return new FeatureInfo(feature.name(), feature.description(), feature.commands());
     }
@@ -35,7 +35,7 @@ public record FeatureInfo(String name, String desc, Class<? extends Action>[] co
         for (var commandClass : commandClasses)
             if (commandClass.getAnnotation(Command.class).name().equals(name))
                 return CommandInfo.of(commandClass);
-        throw new RuntimeException("The command '%s' do not exists for feature '%s'".formatted(name, this.name));
+        throw new RuntimeException("the command '%s' do not exists for feature '%s'".formatted(name, this.name));
     }
 
     public List<Candidate> candidates() {

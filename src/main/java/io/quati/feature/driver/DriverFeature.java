@@ -2,8 +2,11 @@ package io.quati.feature.driver;
 
 import io.quati.api.Feature;
 import io.quati.core.AbstractFeature;
+import io.quati.feature.driver.vendor.DriverMSSQLServer;
+import io.quati.feature.driver.vendor.DriverMySQL;
+import io.quati.feature.driver.vendor.DriverOracle;
+import io.quati.feature.driver.vendor.DriverPostgreSQL;
 
-import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.http.HttpClient;
@@ -27,61 +30,13 @@ import java.util.Set;
         })
 public class DriverFeature extends AbstractFeature {
 
-    public record DriverInfo(
-            String group,
-            String artifact,
-            String version,
-            String defaultPort,
-            String driver,
-            String jdbcURL) {
+    private final Map<String, DriverVendor> driverMap = Map.of(
+            "postgresql", new DriverPostgreSQL(),
+            "oracle", new DriverOracle(),
+            "mysql", new DriverMySQL(),
+            "mssqlserver", new DriverMSSQLServer());
 
-        public URI mavenRepo() {
-            var url = "https://repo1.maven.org/maven2/{group}/{artifact}/{version}/{artifact}-{version}.jar"
-                    .replace("{group}", group)
-                    .replace("{artifact}", artifact)
-                    .replace("{version}", version);
-            return URI.create(url);
-        }
-
-        public String jdbcURL(String host, String port, String database) {
-            return jdbcURL
-                    .replace("{host}", host)
-                    .replace("{port}", port)
-                    .replace("{database}", database);
-        }
-    }
-
-    private final Map<String, DriverInfo> driverMap = Map.of(
-            "postgresql", new DriverInfo(
-                    "org/postgresql",
-                    "postgresql",
-                    "42.7.10",
-                    "5432",
-                    "org.postgresql.Driver",
-                    "jdbc:postgresql://{host}:{port}/{database}"),
-            "oracle", new DriverInfo(
-                    "com/oracle/database/jdbc",
-                    "ojdbc11",
-                    "23.26.1.0.0",
-                    "1521",
-                    "oracle.jdbc.OracleDriver",
-                    "jdbc:oracle:thin:@//{host}:{port}/{database}"),
-            "mysql", new DriverInfo(
-                    "com/mysql",
-                    "mysql-connector-j",
-                    "9.6.0",
-                    "3306",
-                    "com.mysql.cj.jdbc.Driver",
-                    "jdbc:mysql://{host}:{port}/{database}"),
-            "mssqlserver", new DriverInfo(
-                    "com/microsoft/sqlserver",
-                    "mssql-jdbc",
-                    "13.2.1.jre11",
-                    "1433",
-                    "com.microsoft.sqlserver.jdbc.SQLServerDriver",
-                    "jdbc:sqlserver://{host}:{port};databaseName={database};trustServerCertificate=true"));
-
-    public DriverInfo info(String driver) {
+    public DriverVendor vendor(String driver) {
         return driverMap.get(driver);
     }
 
@@ -94,9 +49,10 @@ public class DriverFeature extends AbstractFeature {
     }
 
     public void install(String driver) {
-        var info = info(driver);
+        context.startTarget(driver);
+        var info = vendor(driver);
         if (info == null)
-            context.error("`rr`Driver not found: %s%n`:`", driver);
+            context.error("`rr`driver not found: %s%n`:`", driver);
         else
             try (var client = HttpClient.newHttpClient()) {
                 var request = HttpRequest.newBuilder()
@@ -105,24 +61,25 @@ public class DriverFeature extends AbstractFeature {
                         .build();
                 var response = client.send(request, BodyHandlers.ofFile(context.file(driver + ".jar")));
                 if (response.statusCode() == 200)
-                    context.outputSuccessfully("Driver", driver, "installed");
+                    context.endTargetSuccessfully("Driver", driver, "installed");
                 else
-                    context.error("`r`Failed – HTTP %s!`:`%n", response.statusCode());
+                    context.error("`r`failed – HTTP %s!`:`%n", response.statusCode());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
     }
 
     public void remove(String driver) {
+        context.startTarget(driver);
         if (installed().contains(driver)) {
             context.deleteFile(driver + ".jar");
-            context.outputSuccessfully("Driver", driver, "successfully");
+            context.endTargetSuccessfully("Driver", driver, "successfully");
         } else
             errorNotInstaled(driver);
     }
 
     public void errorNotInstaled(String driver) {
-        context.output("Driver `r`%s`:` is not installed!%n", driver);
+        context.output("driver `r`%s`:` is not installed!%n", driver);
     }
 
     public DriverFeature load(String driver) {
@@ -134,9 +91,9 @@ public class DriverFeature extends AbstractFeature {
                 errorNotInstaled(driver);
             var classLoader = DriverFeature.class.getClassLoader();
             var loader = new URLClassLoader(new URL[]{path.toUri().toURL()}, classLoader);
-            var info = info(driver);
+            var info = vendor(driver);
             if (info == null)
-                throw new InternalError("DriverInfo not found for driver '%s'.".formatted(driver));
+                throw new InternalError("driver info not found for driver '%s'.".formatted(driver));
             var clazz = Class.forName(info.driver, true, loader);
             var object = clazz.getDeclaredConstructor().newInstance();
             DriverManager.registerDriver(new DriverShim((Driver) object));

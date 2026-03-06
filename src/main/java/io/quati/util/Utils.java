@@ -2,6 +2,8 @@ package io.quati.util;
 
 import org.jline.reader.Candidate;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,11 +40,17 @@ public class Utils {
         return new Candidate(name, display, null, description, null, null, true);
     }
 
-    public static void completeArg(List<String> reference, String value, List<String> arguments, List<Candidate> candidates) {
-        if (reference.contains(value))
+    public static void completeCandidates(
+            List<String> reference,
+            String value,
+            List<String> arguments,
+            List<Candidate> candidates,
+            boolean isArityONE) {
+        if (reference.contains(value) && isArityONE)
             return;
         reference
                 .stream()
+                .filter(name -> !name.equals(value))
                 .filter(name -> arguments == null || !arguments.contains(name))
                 .map(Utils::candidate)
                 .forEach(candidates::add);
@@ -61,11 +69,11 @@ public class Utils {
         return Arrays.copyOfRange(args, 1, args.length);
     }
 
-    public static String justifyLeft(String text, int length) {
+    public static String leftJust(String text, int length) {
         return text.concat(diff(text, length));
     }
 
-    public static String justifyRight(String text, int length) {
+    public static String rightJust(String text, int length) {
         return diff(text, length).concat(text);
     }
 
@@ -73,5 +81,23 @@ public class Utils {
         return length <= str.length()
                 ? ""
                 : " ".repeat(length - str.length());
+    }
+
+    public static String line(int size) {
+        return "-".repeat(size);
+    }
+
+    public static String readableDuration(Instant start, Instant end) {
+        var duration = Duration.between(start, end);
+        var millis = duration.toMillis();
+        if (millis < 1_000)
+            return millis + " ms";
+        if (millis < 60_000)
+            return String.format("%.2f seconds", millis / 1000.0);
+        if (millis < 3_600_000)
+            return duration.toMinutes() + " min " + duration.toSecondsPart() + " sec";
+        return duration.toHours() + " h "
+                + duration.toMinutesPart() + " min "
+                + duration.toSecondsPart() + " sec";
     }
 }

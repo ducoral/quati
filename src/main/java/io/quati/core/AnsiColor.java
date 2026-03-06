@@ -79,7 +79,7 @@ public enum AnsiColor {
                 builder.replace(start, end, style);
                 from = start + style.length();
             } else
-                from = start;
+                from = start + 1;
         }
         return builder.toString();
     }
@@ -152,7 +152,7 @@ public enum AnsiColor {
             case 'p' -> PURPLE.code;
             case 'c' -> CYAN.code;
             case 'w' -> WHITE.code;
-            default -> throw new InternalError("Token invalid '%s'.".formatted(token));
+            default -> throw new InternalError("token invalid '%s'.".formatted(token));
         };
         if (bright)
             colorCode += BRIGHT_OFFSET;
@@ -193,7 +193,7 @@ public enum AnsiColor {
 
     private static String formatHexRGB(String format, String hexRGB) {
         if (!hexRGB.matches("#[aAbBcCdDeEfF\\d]{6}"))
-            throw new RuntimeException("Invalid HEX RGB color '%s'".formatted(hexRGB));
+            throw new RuntimeException("invalid HEX RGB color '%s'".formatted(hexRGB));
         return format.formatted(
                 Integer.parseInt(hexRGB.substring(1, 3), 16),
                 Integer.parseInt(hexRGB.substring(3, 5), 16),

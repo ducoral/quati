@@ -12,14 +12,14 @@ public class DataSourceList implements Action {
     public void execute(Context ctx) {
         ctx.output(
                 "`b*`%s %s %s`:`%n",
-                Utils.justifyLeft("datasource", 20),
-                Utils.justifyLeft("driver", 15),
-                Utils.justifyLeft("host", 30));
+                Utils.leftJust("datasource", 20),
+                Utils.leftJust("driver", 15),
+                Utils.leftJust("host", 30));
         for (var ds : ctx.datasource().dataSources())
             ctx.output(
                     "`*`%s`:` %s %s%n",
-                    Utils.justifyLeft(ds.name(), 20),
-                    Utils.justifyLeft(ds.driver(), 15),
-                    Utils.justifyLeft(ds.host(), 30));
+                    Utils.leftJust(ds.name(), 20),
+                    Utils.leftJust(ds.driver(), 15),
+                    Utils.leftJust(ds.host(), 30));
     }
 }

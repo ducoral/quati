@@ -10,7 +10,7 @@ public record Execution(Quati quati) {
         else if (quati.exists(args[0]))
             executeFeature(quati.featureInfo(args[0]), Utils.tail(args));
         else
-            quati.error("The feature '%s' do not exists%n", args[0]);
+            quati.error("the feature '%s' do not exists%n", args[0]);
     }
 
     private void executeFeature(FeatureInfo feature, String[] args) {
@@ -19,16 +19,15 @@ public record Execution(Quati quati) {
         else if (feature.exists(args[0]))
             executeCommand(feature, args[0], Utils.tail(args));
         else
-            quati.error("The command '%s' do not exists for the feature '%s'%n", args[0], feature.name());
+            quati.error("the command '%s' do not exists for the feature '%s'%n", args[0], feature.name());
     }
 
     private void executeCommand(FeatureInfo feature, String commandName, String[] args) {
         var command = feature.commandInfo(commandName);
-
         if (parseCommand(command, 1, args) && command.validate(quati))
             command
                     .action()
-                    .execute(new QuatiContext(quati, feature));
+                    .execute(quati.contextOf(feature));
     }
 
     private boolean parseCommand(CommandInfo command, int pos, String[] args) {
@@ -40,7 +39,7 @@ public record Execution(Quati quati) {
             command.addArgument(args[0]);
             return parseCommand(command, pos + 1, Utils.tail(args));
         } else {
-            quati.error("The argument '%s' is invalid at position '%s'%n", args[0], pos);
+            quati.error("the argument '%s' is invalid at position '%s'%n", args[0], pos);
             return false;
         }
     }
@@ -53,7 +52,7 @@ public record Execution(Quati quati) {
             return true;
         } else if (command.hasOption(option)) {
             if (args.length == 0 || args[0].startsWith("-")) {
-                quati.error("Missing value of option '%s'%n", option);
+                quati.error("missing value of option '%s'%n", option);
                 return false;
             } else if (command.hasRoomFor(option)) {
                 command.putOption(option, args[0]);
@@ -67,11 +66,11 @@ public record Execution(Quati quati) {
                 else
                     return parseCommand(command, pos, args);
             } else {
-                quati.error("The value '%s' is invalid for option '%s'%n", args[0], option);
+                quati.error("the value '%s' is invalid for option '%s'%n", args[0], option);
                 return false;
             }
         } else {
-            quati.error("Invalid option '%s'%n", option);
+            quati.error("invalid option '%s'%n", option);
             return false;
         }
     }

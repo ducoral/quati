@@ -11,7 +11,6 @@ import org.jline.reader.Candidate;
 import java.util.List;
 
 import static io.quati.api.Arity.ONE;
-import static io.quati.api.Arity.ZERO_OR_ONE;
 import static io.quati.feature.datasource.DataSourceFeature.DataSource;
 
 @Command(name = "edit", description = "edit datasource")
@@ -20,44 +19,45 @@ public class DataSourceEdit implements Action {
     @Argument(label = "NAME", description = "name of the datasource to be edited", arity = ONE)
     String name;
 
-    @Option(name = "-d|--driver", desc = "set the JDBC driver", label = "DRIVER", arity = ZERO_OR_ONE)
+    @Option(name = "-d|--driver", description = "set the JDBC driver", label = "DRIVER")
     String driver;
 
-    @Option(name = "-H|--host", label = "HOST", desc = "set database host", arity = ZERO_OR_ONE)
+    @Option(name = "-H|--host", label = "HOST", description = "set database host")
     String host;
 
-    @Option(name = "-P|--port", label = "PORT", desc = "set database port", arity = ZERO_OR_ONE)
+    @Option(name = "-P|--port", label = "PORT", description = "set database port")
     String port;
 
-    @Option(name = "-D|--database", label = "DATABASE", desc = "set database name", arity = ZERO_OR_ONE)
+    @Option(name = "-D|--database", label = "DATABASE", description = "set database name")
     String database;
 
-    @Option(name = "-s|--schema", label = "SCHEMA", desc = "set database schema", arity = ZERO_OR_ONE)
+    @Option(name = "-s|--schema", label = "SCHEMA", description = "set database schema")
     String schema;
 
-    @Option(name = "-u|--user", label = "USER", desc = "set database user name", arity = ZERO_OR_ONE)
+    @Option(name = "-u|--user", label = "USER", description = "set database user name")
     String user;
 
-    @Option(name = "-p|--password", label = "PASSWORD", desc = "set database user password", arity = ZERO_OR_ONE)
+    @Option(name = "-p|--password", label = "PASSWORD", description = "set database user password")
     String password;
 
     @Override
     public void completeArg(Context ctx, int argPos, String value, List<Candidate> candidates) {
-        Utils.completeArg(ctx.datasource().names(), value, null, candidates);
+        Utils.completeCandidates(ctx.datasource().names(), value, null, candidates, true);
     }
 
     @Override
     public void completeOpt(Context ctx, String opt, String value, List<Candidate> candidates) {
         if (opt.equals("-d"))
-            Utils.completeArg(ctx.driver().installed(), value, null, candidates);
+            Utils.completeCandidates(ctx.driver().installed(), value, null, candidates, true);
     }
 
     @Override
     public void execute(Context ctx) {
+        ctx.startTarget(name);
         var feature = ctx.datasource();
         var ds = feature.find(name);
         if (ds == null) {
-            feature.errorNotExists(name);
+            ctx.errorNotExists("datasource", name);
             return;
         }
         if (driver == null
@@ -67,7 +67,7 @@ public class DataSourceEdit implements Action {
                 && schema == null
                 && user == null
                 && password == null) {
-            ctx.error("`yy`Please provide an attribute to be edited`:`%n");
+            ctx.error("`yy`please provide an attribute to be edited`:`%n");
             return;
         }
         var driverFeature = ctx.driver();
@@ -84,7 +84,7 @@ public class DataSourceEdit implements Action {
                 user == null ? ds.user() : user,
                 password == null ? ds.password() : password);
         feature.write(edited);
-        ctx.outputSuccessfully("Datasource", name, "edited");
+        ctx.endTargetSuccessfully("datasource", name, "edited");
         feature.print(edited, false);
     }
 }
