@@ -12,7 +12,7 @@ import java.util.function.Function;
 
 public class Utils {
 
-    public static <T> List<Map<?, ?>> toListOfMap(List<T> fromList, Function<T, Map<?,?>> mapper) {
+    public static <T> List<Map<?, ?>> toListOfMap(List<T> fromList, Function<T, Map<?, ?>> mapper) {
         var toList = new ArrayList<Map<?, ?>>();
         fromList.forEach(item -> toList.add(mapper.apply(item)));
         return toList;
@@ -99,5 +99,13 @@ public class Utils {
         return duration.toHours() + " h "
                 + duration.toMinutesPart() + " min "
                 + duration.toSecondsPart() + " sec";
+    }
+
+    public static String format(long bytes) {
+        if (bytes <= 0)
+            return "0 B";
+        String[] units = {"B", "KB", "MB", "GB", "TB", "PB"};
+        int group = (int) (Math.log10(bytes) / Math.log10(1024));
+        return String.format("%.1f %s", bytes / Math.pow(1024, group), units[group]);
     }
 }

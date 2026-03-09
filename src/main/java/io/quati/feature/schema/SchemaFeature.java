@@ -17,6 +17,7 @@ import java.util.Map;
         description = "datasource database schema",
         commands = {
                 SchemaUpdate.class,
+                SchemaList.class,
                 SchemaDesc.class,
                 SchemaData.class,
                 SchemaCount.class

@@ -44,7 +44,6 @@ public class Quati {
                     .system(true)
                     .build()) {
                 TerminalContext.set(terminal);
-                output("debug: %s%n", Arrays.toString(args));
                 new Execution(this).execute(args);
             } catch (IOException e) {
                 throw new RuntimeException(e);

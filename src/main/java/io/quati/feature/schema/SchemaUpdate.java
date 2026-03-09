@@ -9,10 +9,10 @@ import org.jline.reader.Candidate;
 
 import java.util.List;
 
-@Command(name = "update", description = "update the datasource database schema")
+@Command(name = "update", description = "update the schema from datasource")
 public class SchemaUpdate implements Action {
 
-    @Argument(label = "DATASOURCE", description = "dataources name to update the database schema")
+    @Argument(label = "DATASOURCE", description = "datasource name to update the schema")
     private List<String> datasources;
 
     @Override

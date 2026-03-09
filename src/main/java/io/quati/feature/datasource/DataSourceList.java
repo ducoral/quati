@@ -14,12 +14,12 @@ public class DataSourceList implements Action {
                 "`b*`%s %s %s`:`%n",
                 Utils.leftJust("datasource", 20),
                 Utils.leftJust("driver", 15),
-                Utils.leftJust("host", 30));
+                "host");
         for (var ds : ctx.datasource().dataSources())
             ctx.output(
                     "`*`%s`:` %s %s%n",
                     Utils.leftJust(ds.name(), 20),
                     Utils.leftJust(ds.driver(), 15),
-                    Utils.leftJust(ds.host(), 30));
+                    ds.host());
     }
 }
